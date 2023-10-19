@@ -1,0 +1,18 @@
+{
+	"ui" : {
+		"root_title" : "PyAlgo",
+		"version" : "1.0.0",
+		"appearance_mode" : "System",
+		"default_color_theme" : "blue",
+		"root_resolution" : [1200, 500],
+		"login_resolution" : [310, 200],
+		"about_resolution" : [310, 200],
+		"cfg_resolution" : [500, 200],
+		"button_labels" : {
+			"chg_acct" : "Change Account",
+			"launch_mt5" : "Launch MT5",
+			"settings" : "Settings",
+			"about" : "About"
+		}
+	}
+}
