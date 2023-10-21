@@ -2,7 +2,7 @@ import customtkinter as ctk
 
 
 # Local Imports
-from config.load_cfg import Load_Config
+import config
 
 
 '''
@@ -20,7 +20,7 @@ class AbtWindow(ctk.CTkToplevel):
 	def __init__(self):
 		super().__init__()
 
-		self.config = Load_Config()
+		self.config = config.Load_Config()
 
 		self.title(self.config._about)
 		self.geometry(f'{self.config._about_resolution[0]}x{self.config._about_resolution[1]}')

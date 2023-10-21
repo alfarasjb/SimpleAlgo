@@ -1,13 +1,17 @@
 import json
-
+import logging
 
 '''
 Loading UI config, and path
 
 '''
 
+_log = logging.getLogger(__name__)
+
 class Load_Config():
 	def __init__(self):
+
+		self.__source = 'CONFIG'
 		self.config = self.load_json_file()
 		self.settings = self.load_settings_file()
 
@@ -35,6 +39,10 @@ class Load_Config():
 		self._settings = self.button_labels['settings']
 		self._about = self.button_labels['about']
 
+		_log.info('%s : MT5 PATH: %s', self.__source, self._path)
+		_log.info('%s : STRATEGIES PATH: %s', self.__source, self._strategies)
+
+
 	def load_json_file(self):
 		# loads ui config json file
 		with open(r'config//configs.json') as json_file:
@@ -47,7 +55,7 @@ class Load_Config():
 			cfg = json.load(json_file)
 			return cfg
 
-	def update_paths(self, path, strategies):
+	def update_paths(self, path: str, strategies: str):
 		# Updates settings on json file
 		self._path = path
 		self._strategies = strategies
@@ -55,8 +63,11 @@ class Load_Config():
 
 		cfg['settings']['path'] = path 
 		cfg['settings']['strategies'] = strategies
+		_log.info('Updating Path')
+		_log.info('MT5 Executable: %s', path)
+		_log.info('Strategies Directory: %s', strategies)
 
-		json_file = open('settings.json', 'w')
+		json_file = open('config//settings.json', 'w')
 		json.dump(cfg, json_file)
 		json_file.close()
 

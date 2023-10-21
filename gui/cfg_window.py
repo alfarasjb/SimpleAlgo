@@ -1,9 +1,10 @@
 import customtkinter as ctk 
 import tkinter as tk 
+import logging
 
 # Local Imports
-from config.load_cfg import Load_Config
-
+#from config.load_cfg import Load_Config
+import config
 '''
 Config / Settings window
 Configure MT5 Path and strategies folder
@@ -14,6 +15,8 @@ Strategies Folder - contains python formatted trading strategies
 
 '''
 
+_log = logging.getLogger(__name__)
+
 
 class CfgWindow(ctk.CTkToplevel):
 
@@ -22,7 +25,7 @@ class CfgWindow(ctk.CTkToplevel):
 
 		super().__init__()
 
-		self.config = Load_Config()
+		self.config = config.Load_Config()
 		self.path = self.config._path
 		self.strats = self.config._strategies
 
@@ -60,19 +63,18 @@ class CfgWindow(ctk.CTkToplevel):
 			text = 'Save', width = 460, command = self.close)
 		self.save_button.place(x = 20, y = 150)
 
+		
 	def path_dialog(self):
 		# File popup dialog for browsing mt5 executable path
 		file = tk.filedialog.askopenfile()
 		self.path_str.configure(text = file.name)
 		self.path = file.name
-		print(file.name)
 
 	def strat_dialog(self):
 		# Folder popup dialog for browsing strategies folder path
 		file = tk.filedialog.askdirectory()
 		self.strat_str.configure(text = file)
 		self.strats = file
-		print(file)
 
 	def open_file_dialog(self):
 
@@ -82,5 +84,5 @@ class CfgWindow(ctk.CTkToplevel):
 
 	def close(self):
 		# Saves path to json and closes the popup
-		self.config.update_paths(self.path, self.strats)	
+		self.config.update_paths(self.path, self.strats)
 		self.destroy()

@@ -12,7 +12,6 @@ class Init_Strat():
 		# Two Lists: Strat Class Instancem Filenames list
 		self.strat_instance, self.filenames = self.get_strats_list()
 
-
 	def get_strats_list(self):
 		this_file = os.path.basename(__file__) # This file name
 		res = [] 
@@ -20,7 +19,10 @@ class Init_Strat():
 
 		for path in os.listdir(self.dir_path):
 			raw_path = self.dir_path + '/' + path
-			if os.path.isfile(os.path.join(self.dir_path, path)) and (path != this_file) and ('.py' in path):
+			if os.path.isfile(os.path.join(self.dir_path, path)) \
+			and (path != this_file) \
+			and ('.py' in path)\
+			and ('__init__' not in path): 
 			
 				spec = importlib.util.spec_from_file_location(path, raw_path)
 				foo = importlib.util.module_from_spec(spec)
@@ -30,6 +32,7 @@ class Init_Strat():
 				res.append(path)
 
 		return strat, res
+
 
 
 '''

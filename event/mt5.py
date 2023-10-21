@@ -1,11 +1,10 @@
 import MetaTrader5 as mt5
 from datetime import datetime as dt
-
+import logging
 
 # Local Imports
-from templates.trade_template import Trade_Package
-
-
+import templates
+import config
 '''
 Custom MT5 Class for handling MT5 calls
 
@@ -25,25 +24,33 @@ METHODS:
 7. send_order() - trade request from order package from trade handler
 '''
 
+_log = logging.getLogger(__name__)
+
 
 class MT5_Py():
 
 
 	def __init__(self):
 
-		self.path = 'C:/Program Files/MetaTrader 5 IC Markets (SC)/terminal64.exe'
+		self.__source = 'MT5'
+
+		self.path = config.cfg._path
+		#self.path = 'C:/Program Files/MetaTrader 5 IC Markets (SC)/terminal64.exe'
 		self.pl_hist = []
 		self.symbols = self.fetch_symbols()
+		self.connection_status =  'Disconnected'
+		self._algo_trading_enabled = False
 
+		
 
 	def launch_mt5(self):
 
-		print('Initializing MT5')
+		_log.info('Launching MT5')
 		if not mt5.initialize(path = self.path):
-			print('MT5 failed to initialize. Code: ', mt5.last_error())
+			_log.error('MT5 Failed to initialize. Code: ', mt5.last_error())
 			return False
 		else:
-			print('MT5 initialized successfully.')
+			_log.info('MT5 Initialized Successfully.')
 			self.fetch_account_info()
 			return True
 
@@ -58,13 +65,15 @@ class MT5_Py():
 		acct_server = acct_info['server']
 		acct_name = acct_info['name']
 		acct_bal = acct_info['balance']
-		print(acct_num, acct_server)
+		if acct_info is not None:
+			_log.info('%s : Connected To MT5 Account %s, Server %s', self.__source, acct_num, acct_server)
+			self.connection_status = 'Connected'
 		return acct_name, acct_num, acct_server, acct_bal
 
 	def fetch_order_history(self):
 
 		if mt5.account_info() == None:
-			print('Not Connected')
+			_log.info('%s : Not Connected to MT5', self.__source)
 			return None, None
 		deals = mt5.history_deals_get(0, dt.now())
 		deals = deals[::-1]
@@ -94,7 +103,7 @@ class MT5_Py():
 		# FETCH FROM MT5
 		# Dummy data
 		if mt5.account_info() == None:
-			print('Not Connected')
+			_log.info('%s : Not Connected to MT5', self.__source)
 			return None, None
 		headers = ['ID', 'Ticket', 'Date Opened', 'Symbol', 'Order Type',
 		'Open Price', 'Stop Loss', 'Take Profit', 'Open P/L']
@@ -106,27 +115,53 @@ class MT5_Py():
 
 	def fetch_symbols(self):
 		# Fetch symbols
-		print('Fetch Symbols')
 		fx_path = 'Majors'
 		metals_path = 'Metals'
 		if mt5.account_info() == None:
-			print('Not Connected')
+			_log.info('%s : Not Connected to MT5', self.__source)
 			return None
 		symbols = mt5.symbols_get()
 		ret_symbols = [symbol.name for symbol in symbols if (fx_path in symbol.path) or
 		 (metals_path in symbol.path)]
 		return ret_symbols
 		
-	def request_price_data(self):
+	def request_price_data(self, timeframe: str, symbol: str) -> list:
 		# requests price data from mt5 
 		# returns price data
 		# can receive list of symbols, process individually
 		# may return a list of price data to return to strat
 		# each individual strat may request different price data at different points in time
-		pass
+		
+		# GET BY INDEX
+		#rates = mt5.copy_rates_from_pos('EURUSD', mt5.TIMEFRAME_D1, 0, 10)
+		#print(rates)
+
+		timeframe_converter = {
+			'm1' : mt5.TIMEFRAME_M1,
+			'm5' : mt5.TIMEFRAME_M5,
+			'm15' : mt5.TIMEFRAME_M15,
+			'm30' : mt5.TIMEFRAME_M30,
+			'h1' : mt5.TIMEFRAME_H1,
+			'h4' : mt5.TIMEFRAME_H4,
+			'd1' : mt5.TIMEFRAME_D1,
+			'w1' : mt5.TIMEFRAME_W1,
+			'mn1' : mt5.TIMEFRAME_MN1,
+		}
+		print('MT5 TF: ', timeframe)
+		print('CONVERTED: ', timeframe_converter[timeframe])
+		rates = mt5.copy_rates_from_pos(symbol, timeframe_converter[timeframe], 1, 1)
+		
+		if rates is None:
+			return []
+		date = dt.fromtimestamp(rates[0][0])
+		o, h, l, c = rates[0][1], rates[0][2], rates[0][3], rates[0][4]
+
+		ohlc = [rates[0][i] for i in range(1, 5)]
+		ohlc.insert(0, date)
+		return ohlc
 
 
-	def send_order(self, request_form: dict):
+	def send_order(self, request_form: dict) -> mt5.OrderSendResult:
 		'''
 		expecting this function to be called from trade handler. 
 		trade handler is the bridge from multiple algos to mt5. 
@@ -138,9 +173,26 @@ class MT5_Py():
 		
 		TODO: 
 		1. Execution validation: success / fail
-
-		'''
 		
+		'''
 
+		if mt5.account_info() == None:
+			_log.info('%s : Not Connected to MT5', self.__source)
+			return None 
 
+		
+		_log.info('%s : Sending Order: %s', self.__source, request_form)
+		if self._algo_trading_enabled == False:
+			# RETURN FAILED TO SEND
+			_log.info('%s : Failed to send order. Algo trading disabled', self.__source)
+			
 		order = mt5.order_send(request_form)
+		if order == None:
+			_log.info('%s : Failed to Send Order.', self.__source)
+			_log.info('Code: ', mt5.last_error())
+
+
+
+		return order
+
+

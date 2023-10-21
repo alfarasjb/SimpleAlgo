@@ -1,13 +1,6 @@
-'''
-
-
-import sys 
-sys.path.append('..')
-from config import * 
-import config.load_cfg 
-from abt_window import *
-from acct_info import *
-from cfg_window import *
-from login import *
-
-'''
+# Syntax:
+# from {python file} import {class}
+from .abt_window import AbtWindow
+from .cfg_window import CfgWindow  
+from .acct_info import Account_Info
+from .login import LoginWindow
