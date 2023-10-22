@@ -3,15 +3,28 @@ from threading import Thread
 import logging
 import concurrent.futures
 from datetime import datetime as dt
+from datetime import timezone as tz
+from datetime import timedelta
 import logging
 
 import MetaTrader5 as mt5
 import event
 import templates
+
 # Strategies will have a naming convention: Strat() class
 
 
 _log = logging.getLogger(__name__)
+
+tf_converter = {
+	'm1' : 1, 
+	'm5' : 5,
+	'm15' : 15,
+	'm30' : 30,
+	'h1' : 60,
+}
+
+
 
 class Strat():
 
@@ -24,7 +37,8 @@ class Strat():
 		self.symbol = symbol # list of symbols to attach and request data
 		self.mt5 = event.mt5_py
 		self.trade_handler = event.trade_handler
-
+		self.last_candle_date = None
+		format = '%y-%m-%d %H:%M:%S'
 		_log.info('%s Instance Created for SYMBOL: %s, TIMEFRAME: %s', self.name, self.symbol, self.timeframe)
 		'''
 		TEMPLATE ATTRIBUTES
@@ -63,11 +77,13 @@ class Strat():
 		elif not self.enabled:
 			_log.info('STRAT : %s Disabled', self.name)
 
-	def request_data(self):
+	def request_data(self, datetime):
 		# request data helper function: performs mt5 queries
 
 		
-		ohlc_list = self.mt5.request_price_data(self.timeframe, self.symbol)
+
+		ohlc_list = self.mt5.request_price_data(self.timeframe, 
+			self.symbol, 'date', datetime)
 		if ohlc_list is None:
 			return None
 		return ohlc_list
@@ -93,18 +109,31 @@ class Strat():
 		# example, every 5 mins, if minutes = 5 or 0, trigger request, process, and send
 		# condition: only 1 active position per algo per symbol
 		# loop is called with thread
-		if (dt.now().minute == 5):
-			pass
 
+		# do 1 call to get last candle
+		# this will only run once to get a reference date
 		# Test = One second loop
+		divisor = tf_converter[self.timeframe]
+		sleep_time = (divisor * 60) - 10
+
+		'''
+		Solutions for data request:
+		1. request with fixed time: get timestamp of last data, 
+		compare with current datetime, increment based on timeframe,
+		pass result datetime as argument to request_data function
+		'''
+
+		
 		while self.enabled:
-			
-			if dt.now().second == 0:
-				if (dt.now().minute % 5 == 0):
-					data = self.request_data()
+			utc_now = dt.now(tz.utc)
+			if utc_now.second == 0:
+				if (utc_now.minute % divisor == 0):
+					server_time = utc_now + timedelta(hours = 3) - timedelta(minutes = divisor)
+					
+					data = self.request_data(server_time)
 				#if data is not None:
 					self.process(data)
-				sleep(290)
+					sleep(sleep_time)
 
 		_log.info('STRAT : %s Ending Thread', self.name)
 
@@ -151,7 +180,6 @@ class Strat():
 			self.trade_handler.close_trade(order_package)
 			self.trade_handler.send_order(order_package)
 
-		print(f'DATA: {data}')
 
 
 '''

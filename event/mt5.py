@@ -27,6 +27,8 @@ METHODS:
 _log = logging.getLogger(__name__)
 
 
+
+
 class MT5_Py():
 
 
@@ -40,6 +42,8 @@ class MT5_Py():
 		self.symbols = self.fetch_symbols()
 		self.connection_status =  'Disconnected'
 		self._algo_trading_enabled = False
+
+		
 
 		
 
@@ -97,7 +101,7 @@ class MT5_Py():
 			'Open Price', 'Stop Loss', 'Take Profit', 'Closed P/L']
 
 		# return pl_hist[:10] if only last 10 hist items
-		return headers, pl_hist
+		return headers, pl_hist[:10]
 
 	def fetch_open_positions(self):
 		# FETCH FROM MT5
@@ -125,7 +129,10 @@ class MT5_Py():
 		 (metals_path in symbol.path)]
 		return ret_symbols
 		
-	def request_price_data(self, timeframe: str, symbol: str) -> list:
+	def request_price_data(self, timeframe: str, 
+		symbol: str, request_type: str = 'pos', 
+		start_date: dt = None, 
+		end_date: dt = None, start_index: int = 1, num_bars: int = 1) -> list:
 		# requests price data from mt5 
 		# returns price data
 		# can receive list of symbols, process individually
@@ -135,6 +142,10 @@ class MT5_Py():
 		# GET BY INDEX
 		#rates = mt5.copy_rates_from_pos('EURUSD', mt5.TIMEFRAME_D1, 0, 10)
 		#print(rates)
+
+		
+		#print('MT5 TF: ', timeframe)
+		#print('CONVERTED: ', timeframe_converter[timeframe])
 
 		timeframe_converter = {
 			'm1' : mt5.TIMEFRAME_M1,
@@ -147,13 +158,20 @@ class MT5_Py():
 			'w1' : mt5.TIMEFRAME_W1,
 			'mn1' : mt5.TIMEFRAME_MN1,
 		}
-		print('MT5 TF: ', timeframe)
-		print('CONVERTED: ', timeframe_converter[timeframe])
-		rates = mt5.copy_rates_from_pos(symbol, timeframe_converter[timeframe], 1, 1)
+		tf = timeframe_converter[timeframe]
+		if request_type == 'pos':
+			rates = mt5.copy_rates_from_pos(symbol, tf, start_index, num_bars)
+
+		elif request_type == 'date':
+			rates = mt5.copy_rates_from(symbol, tf, start_date, num_bars)
+
+		elif request_type == 'rates':
+			rates = mt5.copy_rates_range(symbol, tf, start_date, to_date)
 		
 		if rates is None:
 			return []
 		date = dt.fromtimestamp(rates[0][0])
+		#date = rates[0][0]
 		o, h, l, c = rates[0][1], rates[0][2], rates[0][3], rates[0][4]
 
 		ohlc = [rates[0][i] for i in range(1, 5)]

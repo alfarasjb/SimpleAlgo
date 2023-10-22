@@ -1,6 +1,8 @@
 '''
 TODOS 
 - Revise SQL
+- Use strategy page instead of strat column to create instances (1 instance / symbol)
+- Request data using copy_rates_from (with datetime)
 - Separate Close Orders and Trade orders 
 - Segregate dynamic elements
 - Build Dummy Strat for testing threads and trading, and database management
