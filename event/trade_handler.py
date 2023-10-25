@@ -35,6 +35,7 @@ class Trade_Handler():
 
 		self.mt5_object = event.mt5_py
 		self.db = event.db
+
 		self.__source = 'TRADE HANDLER'
 
 	def send_order(self, trade: templates.Trade_Package) -> bool:
@@ -159,6 +160,43 @@ class Trade_Handler():
 		for position in positions:
 			# iterate through open positions
 			# send request, successful close create a vector, to send to trade handler for sql
+			order = mt5.ORDER_TYPE_SELL if position.type == mt5.ORDER_TYPE_SELL else mt5.ORDER_TYPE_BUY 
+			close_price = mt5.symbol_info_tick(symbol).bid if trade.order_type == 'Market Sell' else \
+				mt5.symbol_info_tick(symbol).ask
+			request = {
+				'action' : action,
+				'symbol' : symbol,
+				'volume' : position.volume,
+				'type' : order_type,
+				'position' : position.ticket,
+				'price' : close_price,
+				'deviation' : deviation,
+				'magic' : position.magic,
+				'comment' : 'Close',
+				'type_time' : mt5.ORDER_TIME_GTC,
+				'type_filling' : mt5.ORDER_FILLING_IOC
+			}
+			
+			#if position.type != order_type:
+			close_request = self.mt5_object.send_order(request)
+
+		return True
+
+
+	def close_pos(self, symbol: str):
+		_log.info('%s : Closing Trades', self.__source)
+		action = mt5.TRADE_ACTION_DEAL
+		symbol = symbol
+		positions = mt5.positions_get(symbol = symbol)
+		deviation = 30
+
+		for position in positions:
+			if position.type == mt5.ORDER_TYPE_SELL:
+				order_type = mt5.ORDER_TYPE_BUY
+				close_price = mt5.symbol_info_tick(symbol).ask  
+			elif position.type == mt5.ORDER_TYPE_BUY:
+				order_type = mt5.ORDER_TYPE_SELL 
+				close_price = mt5.symbol_info_tick(symbol).bid
 
 			request = {
 				'action' : action,
@@ -173,11 +211,10 @@ class Trade_Handler():
 				'type_time' : mt5.ORDER_TIME_GTC,
 				'type_filling' : mt5.ORDER_FILLING_IOC
 			}
-			if position.type != order_type:
-				close_request = self.mt5_object.send_order(request)
+			
+			#if position.type != order_type:
+			close_request = self.mt5_object.send_order(request)
 
-
-		return True
 	def store_to_csv(self):
 		# send info to csv
 		# create csv storage class, use pandas to process
@@ -196,6 +233,7 @@ class Trade_Handler():
 			3 : 'Sell Limit'
 		}
 		items = [src, date, order.order, order.request.symbol, order_converter[order.request.order], order.price, order.request.sl, order.request.tp, order.volume]
-		sql = self.db.store_sql('execution', items)
+		# TEMPORARILY DISABLED
+		#sql = self.db.store_sql('execution', items)
 		
 		return True

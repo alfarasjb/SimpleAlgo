@@ -1,11 +1,13 @@
 from time import sleep
 from threading import Thread
+from threading import Event
 import logging
 import concurrent.futures
 from datetime import datetime as dt
 from datetime import timezone as tz
 from datetime import timedelta
 import logging
+import pause
 
 import MetaTrader5 as mt5
 import event
@@ -13,6 +15,18 @@ import templates
 
 # Strategies will have a naming convention: Strat() class
 
+### ===== TODO ===== ###
+'''
+
+
+
+### ===== COMPLETED ===== ###
+- scheduler 
+1. use dt.now to get current time
+2. find the next timeframe period (ex: m5, next minute value divisble by 5)
+3. use that specified time to use pause until.
+
+'''
 
 _log = logging.getLogger(__name__)
 
@@ -25,8 +39,7 @@ tf_converter = {
 }
 
 
-
-class Strat():
+class Auto_Regression:
 
 
 	def __init__(self, enabled: bool = False, timeframe: str = 'm5', symbol: str = 'BTCUSD'):
@@ -38,6 +51,11 @@ class Strat():
 		self.mt5 = event.mt5_py
 		self.trade_handler = event.trade_handler
 		self.last_candle_date = None
+		
+		self.running_thread = None
+		self.threads = []
+		self.exit_event = Event()
+
 		format = '%y-%m-%d %H:%M:%S'
 		_log.info('%s Instance Created for SYMBOL: %s, TIMEFRAME: %s', self.name, self.symbol, self.timeframe)
 		'''
@@ -67,27 +85,41 @@ class Strat():
 	'''
 
 	# ================== GLOBAL METHODS ===================== # 
+	def log(self, message: str): 
+		_log.info('STRAT : %s | SYMBOL: %s | TIMEFRAME: %s | %s', self.name, self.symbol, self.timeframe, message)
+
 	def toggle_strat_state(self, value: bool):
 
 		self.enabled = value
 		if self.enabled:
-			_log.info('STRAT : %s Enabled', self.name)
+			self.log('STRATEGY ENABLED')
 			# Start thread
-			self.start_strat() # Triggers Thread
+			self.exit_event = Event()
+			if len(self.threads) == 0: 
+				self.start_strat() # Triggers Thread
+			else: 
+				self.log('THREAD IS BUSY')
+				
+
 		elif not self.enabled:
-			_log.info('STRAT : %s Disabled', self.name)
+			if len(self.threads) > 0:
+				self.log('STRATEGY DISABLED')
+				# KILL THREAD HERE
+				self.exit_event.set()
+				self.running_thread.join()
+				self.threads.clear()
+				self.log('THREAD CLEARED')
 
-	def request_data(self, datetime):
+	def request_data(self):
 		# request data helper function: performs mt5 queries
+		### === UPDATE === ### Request data using index (from datetime)
+	
 
-		
-
-		ohlc_list = self.mt5.request_price_data(self.timeframe, 
-			self.symbol, 'date', datetime)
+		ohlc_list = self.mt5.request_price_data(timeframe = self.timeframe, 
+			symbol = self.symbol, request_type = 'pos', start_index = 0)
 		if ohlc_list is None:
 			return None
 		return ohlc_list
-		#print(f'{date} {o} {h} {l} {c}')
 
 
 	def send_order(self, order_package):
@@ -97,7 +129,7 @@ class Strat():
 		# returns a success or fail 
 
 		# IF ORDER IS EXECUTED SUCCESSFULLY
-		_log.info('STRAT : %s - ORDER FILLED', self.name)
+		self.log('ORDER FILLED')
 
 		# ADD FILLED ORDER INFO TO LOG
 		pass
@@ -116,31 +148,68 @@ class Strat():
 		divisor = tf_converter[self.timeframe]
 		sleep_time = (divisor * 60) - 10
 
-		'''
-		Solutions for data request:
-		1. request with fixed time: get timestamp of last data, 
-		compare with current datetime, increment based on timeframe,
-		pass result datetime as argument to request_data function
-		'''
-
-		
+		# GET NEXT INTERVAL
 		while self.enabled:
+			self.log('RUNNING LOOP')
+			if self.exit_event.is_set():
+				break
 			utc_now = dt.now(tz.utc)
-			if utc_now.second == 0:
-				if (utc_now.minute % divisor == 0):
-					server_time = utc_now + timedelta(hours = 3) - timedelta(minutes = divisor)
-					
-					data = self.request_data(server_time)
-				#if data is not None:
-					self.process(data)
-					sleep(sleep_time)
+			next_interval, ts = self.get_next_interval()
+			pause.until(ts)
 
-		_log.info('STRAT : %s Ending Thread', self.name)
+			data = self.request_data()	
+
+			if len(data) > 0:
+				self.process(data)
+			
+			# CALL PROCESS AS A THREAD
+
+		self.log('ENDING THREAD')
+
+
+	def get_next_interval(self):
+		divisor = tf_converter[self.timeframe]
+		now = dt.now()
+		min = now.minute
+		'''
+
+		if min % divisor == 0 and min == now.minute:
+			min += divisor 
+			next_interval = now.replace(minute = min, second = 0, microsecond = 0)
+			ts = int(next_interval.timestamp())
+			return next_interval, ts
+
+		while min % divisor != 0:
+			min += 1
+
+		next_interval = now.replace(minute = min, second = 0, microsecond = 0)
+		ts = int(next_interval.timestamp())
+		'''
+
+		while min % divisor != 0:
+			min += 1 
+
+		if min % divisor == 0 and min == now.minute:
+			min += divisor
+
+		min = 0 if min == 60 else min 
+
+		delta = timedelta(hours = 1) if min == 0 else timedelta(hours = 0)
+		next_interval = now.replace(minute = min, second = 0, microsecond = 0)
+		next_interval = next_interval + delta 
+		ts = int(next_interval.timestamp())
+		self.log(f'NEXT INTERVAL: {next_interval}')
+		return next_interval, ts
+
+
 
 	def start_strat(self):
 		# start thread here
-		_log.info('STRAT : %s Starting Thread', self.name)
-		Thread(target = self.loop).start()
+		self.log('STARTING THREAD')
+		self.running_thread = Thread(target = self.loop, daemon = True)
+		self.running_thread.start()
+		self.threads.append(self.running_thread)
+		## SOLUTION 2: Call loop, and create a thread in the loop function 
 
 	# ================= STRAT METHODS ===================# 
 	# Build processing and packaging
@@ -151,33 +220,38 @@ class Strat():
 		# ex: bullish: buy
 		# order type: market order buy
 		# all orders sent must be stored in sql db
-		_log.info('STRAT : %s Processing OHLC', self.name)
+		#_log.info('STRAT : %s Processing OHLC | SYMBOL: %s | TIMEFRAME: %s', self.name, self.symbol, self.timeframe)
+		self.log('PROCESSING OHLC')
 		open_price = data[1]
 		close_price = data[4]
-
+		print('OPEN: ', open_price, ' CLOSE: ', close_price)
 		#order_package = ''
 		# MUST PASS RISK MANAGEMENT FIRST
 		if close_price >= open_price:
 			# long
 			#self.send_order(order_package)
-			_log.info('STRAT : %s LONG ', self.name)
+			#_log.info('STRAT : %s LONG | SYMBOL: %s | TIMEFRAME: %s', self.name, self.symbol, self.timeframe)
+			self.log('LONG')
 			order_form = [self.name, self.symbol, 'Market Buy', 'Market', 0, 0.0, 0.0, 0.01]
 			# PACKAGING
 			order_package = templates.Trade_Package(order_form)
-			self.trade_handler.close_trade(order_package)
+			#self.trade_handler.close_trade(order_package)
+			self.trade_handler.close_pos(self.symbol)
 			self.trade_handler.send_order(order_package)
 
 		elif close_price < open_price:
 			# short
 			#self.send_order(order_package)
-			_log.info('STRAT : %s SHORT ', self.name)
+			#_log.info('STRAT : %s SHORT | SYMBOL: %s | TIMEFRAME: %s', self.name, self.symbol, self.timeframe)
+			self.log('SHORT')
 			order_form = [self.name, self.symbol, 'Market Sell', 'Market', 0, 0.0, 0.0, 0.01]
 
 			order_package = templates.Trade_Package(order_form)
 
 			# if market sell, close all buys
 			# iterate through all active orders
-			self.trade_handler.close_trade(order_package)
+			#self.trade_handler.close_trade(order_package)
+			self.trade_handler.close_pos(self.symbol)
 			self.trade_handler.send_order(order_package)
 
 

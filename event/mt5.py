@@ -163,6 +163,7 @@ class MT5_Py():
 			rates = mt5.copy_rates_from_pos(symbol, tf, start_index, num_bars)
 
 		elif request_type == 'date':
+			print('REQUET FROM DATE: ', start_date)
 			rates = mt5.copy_rates_from(symbol, tf, start_date, num_bars)
 
 		elif request_type == 'rates':

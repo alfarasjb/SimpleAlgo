@@ -7,3 +7,4 @@ from .templates import *
 from .config import *
 from .version import VERSION as __version__'''
 from .root import App
+from .strategies import *
