@@ -1,25 +1,3 @@
-'''
-TODOS 
-- Build function for closing all open orders (strategy specific)
-- Revise SQL
-- New way of creating strat class instances (try using inheritance)
-- Separate Close Orders and Trade orders 
-- Segregate dynamic elements
-
-=== DONE ===
-- Cleanup function type casting and return types DONE 
-- Test market orders to find return types for successful orders DONE
-- Create file for launching class instances to be called by individual packages (mt5 instance to be called by trade handler)
-- Update mt5 class path attribute to fetch from config folder
-- Start SQL Backup 
-- Request data using copy_rates_from (with datetime)
-- Use strategy page instead of strat column to create instances (1 instance / symbol)
-- Start working on strategies tab for handling multiple strategies, symbols, and timeframe combinations
-- Check for duplicate instances
-- Build Dummy Strat for testing threads and trading, and database management
-- Edit Dummy strat to only have 1 trade at a time
-- Create another script to handle operations for trading (because ui is very slow), use threading
-'''
 
 
 import tkinter as tkinter
@@ -99,9 +77,11 @@ class App(ctk.CTk):
 
 		# Header and Title
 		self.header_frame = ctk.CTkFrame(self, border_color = 'white')
-		self.header_frame.grid(row = 0, column = 1, padx = 30, pady = (10, 0))
 		self.main_header = ctk.CTkLabel(self.header_frame, width = 250, height = 0, 
 			text = self.config._root_title, font = ctk.CTkFont(size = 20, weight = 'bold'))
+
+
+		self.header_frame.grid(row = 0, column = 1, padx = 30, pady = (10, 0))
 		self.main_header.grid(row = 0, column = 0, padx = 20, pady = 10, sticky = '')
 
 
@@ -140,6 +120,7 @@ class App(ctk.CTk):
 
 		# Left Sidebar
 		self.sidebar_frame = ctk.CTkFrame(self, width = 200, corner_radius = 10)
+
 		self.sidebar_frame.grid(row = 0, column = 0, rowspan = 4, sticky = 'nsew')
 		self.sidebar_frame.grid_rowconfigure(4, weight = 1)
 		self.build_sidebar_elements()
@@ -148,6 +129,7 @@ class App(ctk.CTk):
 
 		# Right Sidebar
 		self.right_sb_frame = ctk.CTkFrame(self, width = 200, corner_radius = 10)
+
 		self.right_sb_frame.grid(row = 0, column = 2, columnspan = 2, rowspan = 4, sticky = 'nsew')
 		#self.right_sb_frame.grid_columnconfigure(0, weight = 1)
 		self.build_strat_sidebar_elements()
@@ -171,43 +153,32 @@ class App(ctk.CTk):
 
 			self._sidebar_elements.append((element, val))
 
-		# Change Account Button
 		self.change_account_button = ctk.CTkButton(self.sidebar_frame, 
 			command = self.change_account_popup, text = self.config._chg_acct, state = 'disabled')
-		self.change_account_button.grid(row = 5, column = 0, padx = 10, pady = 5)
-
-		# Launch MT5 Button
 		self.mt5_button = ctk.CTkButton(self.sidebar_frame, 
 			command = self.launch_mt5, text = self.config._launch_mt5)
-		self.mt5_button.grid(row = 6, column = 0, padx = 10, pady = 5)
-
-		# Settings Button
 		self.cfg_button = ctk.CTkButton(self.sidebar_frame, 
 			command = self.cfg_popup, text = self.config._settings)
-		self.cfg_button.grid(row = 7, column = 0, padx = 10, pady = 5)
-
-		# About Button
 		self.abt_button = ctk.CTkButton(self.sidebar_frame, 
 			command = self.abt_popup, text = self.config._about)
+
+		self.change_account_button.grid(row = 5, column = 0, padx = 10, pady = 5)
+		self.mt5_button.grid(row = 6, column = 0, padx = 10, pady = 5)		
+		self.cfg_button.grid(row = 7, column = 0, padx = 10, pady = 5)		
 		self.abt_button.grid(row = 8, column = 0, padx = 10, pady = (5, 10))
 
 	def build_strat_sidebar_elements(self):
 
-		# Strategy Sidebar
-
 		# Strategies in strategies folder
 		strats = self._strat_names
+		algo_button_status, algo_button_clr = self.algo_trading_button_color()
 
-		# Strategies Header
 		header = ctk.CTkLabel(master = self.right_sb_frame,
 			text = 'STRATEGIES', font = ctk.CTkFont(size = 14, weight = 'bold'))
-		header.grid(row = 0, column = 0, columnspan = 2, padx = 30, pady = (20, 10))
-		#header.grid_columnconfigure(0, weight = 1)
-
-		# ALGO TRADING TOGGLE SWITCH
-		algo_button_status, algo_button_clr = self.algo_trading_button_color()
 		self.algo_trading_button = ctk.CTkButton(self.right_sb_frame, text = algo_button_status,
 			fg_color = algo_button_clr, hover_color = algo_button_clr, command = self.toggle_algo_trading)
+
+		header.grid(row = 0, column = 0, columnspan = 2, padx = 30, pady = (20, 10))
 		self.algo_trading_button.grid(row = 1, column = 0, columnspan = 2, padx = 30, pady = (10, 20))
 
 		# Build Strategies list (label + Switch) 
@@ -280,62 +251,60 @@ class App(ctk.CTk):
 
 
 	def build_strategies_tab(self):
-		#print(self._strat_objects)
 
 		strat_names = list(self._strat_objects.keys())
 		symbols_list = ['Symbols']
 		timeframes = ['m1', 'm5', 'm15', 'm30']
+		strat_menu_var = ctk.StringVar(value = 'Strategies')
+		tf_menu_var = ctk.StringVar(value = 'Timeframe')
+		symbols_menu_var = ctk.StringVar(value = 'Symbols')
 		# invoke this class
 		#self._strat_objects[0](timeframe = 'm15', symbol = 'GBPUSD')
 
 		# HEADER FRAME (For input feels and dropdown menu)
 		self.strat_hdr_frame = ctk.CTkFrame(self.tabview.tab('Strategies'))
-		self.strat_hdr_frame.grid(row = 0, column = 0, padx = 20, pady = 10)
-
-		strat_menu_var = ctk.StringVar(value = 'Strategies')
 		self.strats_dropdown = ctk.CTkOptionMenu(self.strat_hdr_frame,
 			values = strat_names, variable = strat_menu_var)
+		self.tf_dropdown = ctk.CTkOptionMenu(self.strat_hdr_frame,
+			values = timeframes, variable = tf_menu_var)
+		self.target_symbol = ctk.CTkEntry(self.strat_hdr_frame, placeholder_text = 'Symbol')
+		self.add_button = ctk.CTkButton(self.strat_hdr_frame, text = 'Confirm',
+			command = self.add_strat, width = 70)
+
+		self.strat_hdr_frame.grid(row = 0, column = 0, padx = 20, pady = 10)
 		self.strats_dropdown.grid(row = 0, column = 0, padx = 20, pady = 10)
+		self.tf_dropdown.grid(row = 0, column = 1, padx = 20, pady = 10)
+		self.target_symbol.grid(row = 0, column = 2)
+		self.add_button.grid(row = 0, column = 3, padx = 20, pady = 10)
 
 		### TIMEFRAME
 
 		#self.tf_entry = ctk.CTkEntry(self.strat_hdr_frame, placeholder_text = 'Timeframe')
 		#self.tf_entry.grid(row = 0, column = 1, padx = 10, pady = 10)
-
-		tf_menu_var = ctk.StringVar(value = 'Timeframe')
-		self.tf_dropdown = ctk.CTkOptionMenu(self.strat_hdr_frame,
-			values = timeframes, variable = tf_menu_var)
-		self.tf_dropdown.grid(row = 0, column = 1, padx = 20, pady = 10)
-
-
-		symbols_menu_var = ctk.StringVar(value = 'Symbols')
+		
 		#self.target_symbol = ctk.CTkOptionMenu(self.strat_hdr_frame,
 		#	values = symbols_list, variable = symbols_menu_var)
 		#self.target_symbol.grid(row = 0, column = 2, padx = 10, pady = 10)
 
 		### SYMBOLS AS ENTRY
-		self.target_symbol = ctk.CTkEntry(self.strat_hdr_frame, placeholder_text = 'Symbol')
-		self.target_symbol.grid(row = 0, column = 2)
-
-		self.add_button = ctk.CTkButton(self.strat_hdr_frame, text = 'Confirm',
-			command = self.add_strat, width = 70)
-		self.add_button.grid(row = 0, column = 3, padx = 20, pady = 10)
+		
+		
 
 		
 	def build_active_strats(self):
 		pady = (5, 0)
 		self._active_strats_switch = []
+		labels = ['Strategy', 'Symbol', 'Timeframe', 'Toggle', '']
 		### ===== ACTIVE STRATEGIES LIST ===== ### 
 		self.scroll_frame = ctk.CTkScrollableFrame(self.tabview.tab('Strategies'), width = 650, fg_color = 'transparent')
 		self.scroll_frame.grid(row = 1, column = 0, columnspan = 3, padx = 10)
 		self.scroll_frame.grid_columnconfigure(3, weight = 1)
-		labels = ['Strategy', 'Symbol', 'Timeframe', 'Toggle', '']
+		
 		for j, label in enumerate(labels):
 			self.header_label = ctk.CTkLabel(self.scroll_frame, text = label)
 			self.header_label.grid(row = 0, column = j, padx = 40, pady = pady)
 
 		## BUILD HEADER
-
 		for i, st in enumerate(self.init_strat._strategies_in_table):
 			self.build_strat_row(st[0].name, st[0].timeframe, st[0].symbol, i)
 
@@ -353,9 +322,9 @@ class App(ctk.CTk):
 		key = self.strats_dropdown.get() # name of the strategy
 		obj = self._strat_objects[key] if key in list(self._strat_objects.keys()) else None
 		strats_in_table = len(self.init_strat._strategies_in_table)
-
 		timeframe = self.tf_dropdown.get()
 		symbol = self.target_symbol.get()
+
 		if obj != None:
 			# INIT STRAT - ADD STRAT TO TABLE
 			self.init_strat.add_strat_to_table(obj, timeframe, symbol, key)
@@ -395,65 +364,60 @@ class App(ctk.CTk):
 		# REMOVE FROM LIST AND REDRAW
 		strat_to_remove = self.init_strat._strategies_in_table[i]
 		switch_to_remove = self._active_strats_switch[i]
+
 		if strat_to_remove[1] == 1:
 			self.init_strat.running_strategy(i, 0)
 		self.init_strat.remove_strat_from_table(strat_to_remove)
 		self._active_strats_switch.remove(switch_to_remove)
 		self.build_active_strats()
 
-		print('SWITCHES: ', len(self._active_strats_switch))
-		print('STRATS: ', len(self.init_strat._strategies_in_table))
-
 	def build_manual_trading(self):
 		# Manual Trading Page
 
 		symbols_list = ['Symbols']
+		option_menu_var = ctk.StringVar(value = 'Symbols')
+		po_params = ['Price', 'Stop Loss', 'Take Profit', 'Volume']
+
 		self.symbol_frame = ctk.CTkFrame(self.tabview.tab('Manual Trading'))
 		#self.symbol_frame.grid(row = 0, column = 0, columnspan = 2, padx = 10, pady = 10)
+		self.symbol_label = ctk.CTkLabel(self.symbol_frame, text = 'Symbol')
+		self.symbols_dropdown = ctk.CTkOptionMenu(self.symbol_frame, 
+			values = symbols_list, variable = option_menu_var)
+		self.po_frame = ctk.CTkFrame(self.symbol_frame)
+		self.po_header = ctk.CTkLabel(self.po_frame, text = 'PENDING ORDER')
+
+
 		self.symbol_frame.pack(fill = 'x')
 		self.symbol_frame.grid_columnconfigure((0, 1), weight = 1)
 		self.symbol_frame.grid_rowconfigure((0, 1), weight = 1)
-		self.symbol_label = ctk.CTkLabel(self.symbol_frame, text = 'Symbol')
 		self.symbol_label.grid(row = 0, column = 0, padx = 20, pady = (20, 10))
-
-		option_menu_var = ctk.StringVar(value = 'Symbols')
-		self.symbols_dropdown = ctk.CTkOptionMenu(self.symbol_frame, 
-			values = symbols_list, variable = option_menu_var)
 		self.symbols_dropdown.grid(row = 0, column = 1, padx = 20, pady = 20)
-
-		# Pending Order Column
-		po_params = ['Price', 'Stop Loss', 'Take Profit', 'Volume']
-		self.po_frame = ctk.CTkFrame(self.symbol_frame)
 		self.po_frame.grid(row = 1, column = 0, padx = 10, pady = 10)
 		self.po_frame.grid_rowconfigure(4, weight = 1)
-
-		self.po_header = ctk.CTkLabel(self.po_frame, text = 'PENDING ORDER')
 		self.po_header.grid(row = 0, column = 0, columnspan = 2, padx = 20, pady = 10)
 
 		# PRICE FIELDS
 		for i, param in enumerate(po_params):
 			self.po_label = ctk.CTkLabel(self.po_frame, text = param)
-			self.po_label.grid(row = i + 1, column = 0, padx = 20, pady = 10)
 			self.po_field = ctk.CTkEntry(self.po_frame)
+
+			self.po_label.grid(row = i + 1, column = 0, padx = 20, pady = 10)
 			self.po_field.grid(row = i + 1, column = 1, padx = 20, pady = 10)
+
 			self._pending_order_params.append((self.po_field))
 
 		self.blim_button = ctk.CTkButton(self.po_frame, text ='Buy Limit', 
 			command = lambda order_type = 'Buy Limit': self.send_pending_order(order_type))
-		self.blim_button.grid(row = 5, column = 1, padx = 20, pady = 10)
-
 		self.slim_button = ctk.CTkButton(self.po_frame, text = 'Sell Limit', 
 			command = lambda order_type = 'Sell Limit' : self.send_pending_order(order_type))
-		self.slim_button.grid(row = 5, column = 0, padx = 20, pady = 10)
-
-		# Market Order Column
 		self.manual_trading_frame = ctk.CTkFrame(self.symbol_frame)
+		self.manual_header = ctk.CTkLabel(self.manual_trading_frame, text = 'MARKET ORDER')
+
+		self.blim_button.grid(row = 5, column = 1, padx = 20, pady = 10)
+		self.slim_button.grid(row = 5, column = 0, padx = 20, pady = 10)		
 		self.manual_trading_frame.grid(row = 1, column = 1, padx = 10, pady = 10)
 		self.manual_trading_frame.grid_rowconfigure(4, weight = 1)
-
-		self.manual_header = ctk.CTkLabel(self.manual_trading_frame, text = 'MARKET ORDER')
 		self.manual_header.grid(row = 0, column = 0, columnspan = 2, padx = 20, pady = 10)
-
 
 
 
@@ -480,16 +444,6 @@ class App(ctk.CTk):
 		# Sends packaged order parameters to MT5 event handler
 		trade_handler.send_order(pending_order) 
 
-
-	# STRATEGY SWITCH
-	def toggle_strat(self, button_index: int):
-		obj = self._strat_elements[button_index]
-		button = obj[0] # button
-		toggled_strat = obj[1] # strategy object
-		# shortened for readability
-		if self._algo_trading_enabled:
-			toggled_strat.toggle_strat_state(button.get())
-
 		# BUTTON COMMANDS
 	def algo_trading_button_color(self):
 
@@ -514,17 +468,14 @@ class App(ctk.CTk):
 		enabled = 'Enabled' if self._algo_trading_enabled else 'Disabled'
 		_log.info('ROOT : Algo Trading %s', enabled)
 		self.mt5_py._algo_trading_enabled = self._algo_trading_enabled
-
-
 		# Toggle strategy switches
 
 	def update_account_data(self, data):
-
 	# General Helper function for updating left sidebar (Can be called on change account)
 		[self._sidebar_elements[i][1].configure(text = info_data) for i, info_data in enumerate(data)]
 
-	def launch_mt5(self):
 
+	def launch_mt5(self):
 		# Launch MT5
 		if self.mt5_py.launch_mt5():
 			name, num, brkr, bal = self.mt5_py.fetch_account_info()
@@ -534,7 +485,6 @@ class App(ctk.CTk):
 			
 
 	def change_account_popup(self):
-
 		# Creates Login popup window
 		# TODO: Disable root window if this enabled (DONE)
 		if self._loginWindow is None or not self._loginWindow.winfo_exists():		
@@ -544,7 +494,6 @@ class App(ctk.CTk):
 			self.loginWindow.focus()
 
 	def cfg_popup(self):
-
 		# Create Settings popup window
 		if self._cfgWindow is None or not self._cfgWindow.winfo_exists():
 			self._cfgWindow = gui.CfgWindow()
@@ -553,7 +502,6 @@ class App(ctk.CTk):
 			self._cfgWindow.focus()
 
 	def abt_popup(self):
-
 		# Create about popup window
 		if self._abtWindow is None or not self._abtWindow.winfo_exists():
 			self._abtWindow = gui.AbtWindow()

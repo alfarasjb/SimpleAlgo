@@ -10,7 +10,7 @@ class Trade_Package():
 
 	def __init__(self, attribs: list):
 		# pass in a list of len = 5
-		self.__order_keys = ['Source', 'Symbol', 'Order Type', 'Comment', 'Price', 'SL', 'TP', 'Volume']
+		self.__order_keys = ['Source', 'Symbol', 'Order Type', 'Deal', 'Comment', 'Price', 'SL', 'TP', 'Volume']
 		self.__order_values = attribs
 
 		self.__order_dict = {k:v for k, v in zip(self.__order_keys, self.__order_values)}
@@ -24,3 +24,4 @@ class Trade_Package():
 		self.order_comment = self.__order_dict['Comment'] # Comment (Source algo / manual trading)
 		self.order_type = self.__order_dict['Order Type'] # Order Type (Buy, Sell, Buy Limit, Sell Limit)
 		self.order_volume = self.__order_dict['Volume'] # Order Volume
+		self.order_deal = self.__order_dict['Deal'] # Order Deal

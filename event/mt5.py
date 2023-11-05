@@ -1,7 +1,8 @@
 import MetaTrader5 as mt5
 from datetime import datetime as dt
 import logging
-
+import numpy as np 
+import pandas as pd
 # Local Imports
 import templates
 import config
@@ -163,21 +164,36 @@ class MT5_Py():
 			rates = mt5.copy_rates_from_pos(symbol, tf, start_index, num_bars)
 
 		elif request_type == 'date':
-			print('REQUET FROM DATE: ', start_date)
 			rates = mt5.copy_rates_from(symbol, tf, start_date, num_bars)
-
+	
 		elif request_type == 'rates':
 			rates = mt5.copy_rates_range(symbol, tf, start_date, to_date)
 		
 		if rates is None:
 			return []
-		date = dt.fromtimestamp(rates[0][0])
-		#date = rates[0][0]
-		o, h, l, c = rates[0][1], rates[0][2], rates[0][3], rates[0][4]
 
-		ohlc = [rates[0][i] for i in range(1, 5)]
-		ohlc.insert(0, date)
-		return ohlc
+		
+
+		#print(rates)
+		#print(rates.shape)
+		#arr = np.array(rates)
+		#arr[:, :1] = dt.fromtimestamp(arr[:, :1])
+		#print(arr)
+
+		# TRY: format rates into a numpy array,
+		# columns to drop from last: 3
+		# number of columns = arr.shape[1]
+		# SLICE: arr[:,:arr.shape[1] - 3]
+
+		data = pd.DataFrame(data = rates)
+		data['time'] = pd.to_datetime(data['time'], unit = 's')
+		data = data.loc[:, ['time', 'open', 'high', 'low', 'close']]
+		arr = np.array(data)
+		#rates = [list(rate) for rate in rates]
+		#arr = np.array(rates)
+		#arr = arr[:,:arr.shape[1] - 3]
+		
+		return arr
 
 
 	def send_order(self, request_form: dict) -> mt5.OrderSendResult:

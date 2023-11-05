@@ -56,7 +56,6 @@ class Trade_Handler():
 
 		# REQUIRED: To access tick data, must add symbol to market watch
 		selected = mt5.symbol_select(trade.order_symbol)
-
 		order_converter = {
 			'Buy Limit' : mt5.ORDER_TYPE_BUY_LIMIT,
 			'Sell Limit' : mt5.ORDER_TYPE_SELL_LIMIT,
@@ -71,14 +70,14 @@ class Trade_Handler():
 
 		# ===== MAIN REQUEST TEMPLATE ===== # 
 		# Restore after testing 
-		order_action = deal_converter[trade.order_comment]
+		order_action = deal_converter[trade.order_deal]
 		symbol = trade.order_symbol
 		order_type = order_converter[trade.order_type]
 
-		if trade.order_comment == 'Pending':
+		if trade.order_deal == 'Pending':
 			price = trade.order_price
 
-		elif trade.order_comment == 'Market':
+		elif trade.order_deal == 'Market':
 			if trade.order_type == 'Market Buy':
 				price = mt5.symbol_info_tick(trade.order_symbol).ask
 
@@ -119,7 +118,7 @@ class Trade_Handler():
 				_log.info('%s : Failed to update SQL DB', self.__source)
 				return False
 		else:
-			_log.info('%s : Order Failed. Code: %i', self.__source, order.retcode)
+			_log.info('%s : Order Failed. Code: %i', self.__source, order_request.retcode)
 			return False
 	
 	def close_trade(self, trade: templates.Trade_Package) -> bool:
