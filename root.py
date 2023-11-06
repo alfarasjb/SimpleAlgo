@@ -15,6 +15,7 @@ import event # MT5_Py, Trade Handler
 import config # Load_Config
 import templates # Trade_Package
 import strategies # Init_Strat
+import signals
 
 ctk.set_appearance_mode('System')
 ctk.set_default_color_theme('blue')
@@ -33,6 +34,8 @@ class App(ctk.CTk):
 		self.mt5_py = event.mt5_py
 		self.config = config.cfg
 		self.init_strat = strategies.Init_Strat(self.config._strategies)
+		self.fcast = signals.Forecast()
+
 
 		# Data to display 
 		self._hist_data = [] # Trade history - fetch from mt5, and restructure
@@ -93,7 +96,7 @@ class App(ctk.CTk):
 		#tab_names = ['Open Positions', 'History', 'Strategies', 
 		#'Correlation Matrix', 'Signals', 'Manual Trading']
 
-		tab_names = ['Strategies', 'Manual Trading', 'Open Positions', 'History']
+		tab_names = ['Strategies', 'Manual Trading', 'Open Positions', 'History', 'Signals']
 
 		# Builds Main Tabview ; command builds elements per tab
 		self.tabview = ctk.CTkTabview(self, command = self.tab_func)
@@ -249,6 +252,17 @@ class App(ctk.CTk):
 			self.build_strategies_tab()
 			self.build_active_strats()
 
+		elif name == 'Signals':
+			# Signals Tab
+			self.build_signals_tab()
+
+	
+	def build_signals_tab(self):
+		signals = self.fcast.read_data()
+		self.gui = gui.Signals_Tab(self.tabview.tab('Signals'), signals)
+
+		
+		# BUILD UI 
 
 	def build_strategies_tab(self):
 
@@ -281,13 +295,13 @@ class App(ctk.CTk):
 
 		#self.tf_entry = ctk.CTkEntry(self.strat_hdr_frame, placeholder_text = 'Timeframe')
 		#self.tf_entry.grid(row = 0, column = 1, padx = 10, pady = 10)
-		
+
 		#self.target_symbol = ctk.CTkOptionMenu(self.strat_hdr_frame,
 		#	values = symbols_list, variable = symbols_menu_var)
 		#self.target_symbol.grid(row = 0, column = 2, padx = 10, pady = 10)
 
 		### SYMBOLS AS ENTRY
-		
+
 		
 
 		
@@ -482,7 +496,7 @@ class App(ctk.CTk):
 			self.update_account_data((num, brkr, bal)) # Updates account data on left sidebar
 			self._symbols_list = self.mt5_py.fetch_symbols()
 			self.tab_func() # Updates table elements on MT5 Launch
-			
+			self.fcast.update()
 
 	def change_account_popup(self):
 		# Creates Login popup window

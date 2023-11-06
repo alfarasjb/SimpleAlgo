@@ -1,18 +1,19 @@
 '''
-TODOS 
-- Create Signals class using MA forecasting
+=== TODOS ===
+- Build event handler mt5 launch (update forecast, etc) - handler will be middle checkpoint for ui and other ops
 - Create Risk management module 
 - Create GBPUSD strategy in a separate tab 
 
+- Reformat UI using pack/place(relx, rely, relwidth, relheight)
 
 - Build function for closing all open orders (strategy specific)
 - Revise SQL
-- New way of creating strat class instances (try using inheritance)
 - Separate Close Orders and Trade orders 
 - Segregate dynamic elements
 
 
 === DONE ===
+
 - Cleanup function type casting and return types DONE 
 - Test market orders to find return types for successful orders DONE
 - Create file for launching class instances to be called by individual packages (mt5 instance to be called by trade handler)
@@ -25,4 +26,12 @@ TODOS
 - Build Dummy Strat for testing threads and trading, and database management
 - Edit Dummy strat to only have 1 trade at a time
 - Create another script to handle operations for trading (because ui is very slow), use threading
+- New way of creating strat class instances (try using inheritance)
+- Create Signals class using MA forecasting
 '''
+
+
+MT5 LAUNCH Handler
+- updates signals 
+- updates ui 
+

@@ -57,7 +57,16 @@ class MT5_Py():
 		else:
 			_log.info('MT5 Initialized Successfully.')
 			self.fetch_account_info()
+			self.check_connection_status()
 			return True
+	
+	def check_connection_status(self):
+    		
+		if mt5.account_info() is None: 
+			self.connection_status = 'Not Connected'
+			return 'Not Connected'
+		self.connection_status = 'Connected'
+		return 'Connected'
 
 
 	def fetch_account_info(self):
@@ -167,7 +176,7 @@ class MT5_Py():
 			rates = mt5.copy_rates_from(symbol, tf, start_date, num_bars)
 	
 		elif request_type == 'rates':
-			rates = mt5.copy_rates_range(symbol, tf, start_date, to_date)
+			rates = mt5.copy_rates_range(symbol, tf, start_date, end_date)
 		
 		if rates is None:
 			return []
