@@ -33,26 +33,26 @@ class Signals:
 
 		for ohlc in data:
 			# indexes: 0 - date, 1 - open, 2 - high, 3 - low, 4 - close
-		    o, h, l, c = [ohlc[i] for i in range(1, 5)]
-		    direction = 1 if c > o else 0  
-		    # 1 denotes long, 0 denotes short
-		    # review sequence  
-		    directions.append(direction)
+			o, h, l, c = [ohlc[i] for i in range(1, 5)]
+			direction = 1 if c > o else 0  
+			# 1 denotes long, 0 denotes short
+			# review sequence  
+			directions.append(direction)
 
 		# expected output: 1d vector of integers = [1, 0, 0, 1]
-		
+
 		# conditions:
 		d_12, d_8, d_4, d_0 = [directions[i] for i in range(4)]
 		h_12, h_8, h_4, h_0 = [data[i][2] for i in range(1, 5)]
 		l_12, l_8, l_4, l_0 = [data[i][3] for i in range(1, 5)]
 
-		if ((d_12 == d_8 == 1) and (h_12 > h_8)) or 
-		   ((d_12 == d_8 == 0) and (l_8 > l_12)):
+		if ((d_12 == d_8 == 1) and (h_12 > h_8)) or \
+		((d_12 == d_8 == 0) and (l_8 > l_12)):
 			self.signals_main[symbol] = 'counter'
 
-		elif ((d_12 == 1 and d_8 == 0) and (h_12 > h_8)) or 
+		elif ((d_12 == 1 and d_8 == 0) and (h_12 > h_8)) or \
 			((d_12 == 0 and d_8 == 1) and (l_8 > l_12)):
 			self.signals_main[symbol] = 'external'
 
-		
+
 

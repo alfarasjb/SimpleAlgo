@@ -26,16 +26,16 @@ class Init_Strat():
 	def get_strats(self):
     	#objective: return list of files, and strategy objects
 		this_file = os.path.basename(__file__)
-		print('this: ', this_file)
+		#print('this: ', this_file)
 		excluded_files = [this_file, '__init__.py']
 		dir_files = []
 		[dir_files.append(d) for d in os.listdir('.\strategies') if d.endswith('.py') and d not in excluded_files]
-		print('STRATEGIES IN FOLDER: ', dir_files)
+		#print('STRATEGIES IN FOLDER: ', dir_files)
 		res = []
 		obj = {}
 		for d in dir_files:
 			#check classes
-			print(d)
+			#print(d)
 			k, class_name = self.check_class(d)
 			if  k is not None:
 				res.append(class_name)
@@ -43,7 +43,6 @@ class Init_Strat():
 		return res, obj
 
 	def check_class(self, f):
-		print('filename: ', f)
 		with open(f'strategies/{f}', 'r') as file:
 			lines = file.readlines()
 			for line in lines: 
@@ -70,7 +69,6 @@ class Init_Strat():
 		spec.loader.exec_module(module)
 	
 		k = getattr(module, class_name)
-		print(class_name)
 		return k
 	
 	'''
