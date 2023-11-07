@@ -45,6 +45,7 @@ class App(ctk.CTk):
 		self._pending_order_params = []
 		self._market_order_params = []
 		self._active_strats_switch = []
+		self._signals_list = []
 
 		self._strat_names = self.init_strat.filenames # list of strat
 		self._strat_objects = self.init_strat.class_object
@@ -91,7 +92,7 @@ class App(ctk.CTk):
 	def build_mid_column(self):
 
 		# Build Mid Column
-		self.build_main_header()
+		#self.build_main_header()
 
 		#tab_names = ['Open Positions', 'History', 'Strategies', 
 		#'Correlation Matrix', 'Signals', 'Manual Trading']
@@ -258,9 +259,10 @@ class App(ctk.CTk):
 
 	
 	def build_signals_tab(self):
-		signals = self.fcast.read_data()
-		self.gui = gui.Signals_Tab(self.tabview.tab('Signals'), signals)
-
+		if len(self._signals_list) == 0:
+			signals = self.fcast.read_data()
+			self.gui = gui.Signals_Tab(self.tabview.tab('Signals'), signals)
+			self._signals_list = self.gui._signals_elements
 		
 		# BUILD UI 
 
