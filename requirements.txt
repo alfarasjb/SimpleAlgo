@@ -1,0 +1,8 @@
+setuptools>=63.4.1
+pause
+metatrader5>=5.0.45
+pandas>=1.4.4
+numpy>=1.26.0
+pandas_ta>=0.3.14b0
+customtkinter>=5.2.0
+sqlalchemy>=1.4.39
