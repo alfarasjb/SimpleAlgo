@@ -214,17 +214,17 @@ class MT5_Py():
 
 		returns confirmation to return to trade handler, uploads successful
 		trade to sql db for storage
-		
+
 		TODO: 
 		1. Execution validation: success / fail
-		
+
 		'''
 
 		if mt5.account_info() == None:
 			_log.info('%s : Not Connected to MT5', self.__source)
 			return None 
 
-		
+
 		_log.info('%s : Sending Order: %s', self.__source, request_form)
 		if self._algo_trading_enabled == False:
 			# RETURN FAILED TO SEND

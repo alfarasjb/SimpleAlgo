@@ -1,6 +1,5 @@
 import pandas as pd
 import numpy as np 
-from parse import Parse
 import pandas_ta as ta
 
 class MA_Query():

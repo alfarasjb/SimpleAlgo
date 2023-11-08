@@ -34,7 +34,7 @@ class Trade_Handler():
 	def __init__(self):
 
 		self.mt5_object = event.mt5_py
-		self.db = event.db
+		#self.db = event.db # temporarily disabled
 
 		self.__source = 'TRADE HANDLER'
 

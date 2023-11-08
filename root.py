@@ -35,7 +35,7 @@ class App(ctk.CTk):
 		self.config = config.cfg
 		self.init_strat = strategies.Init_Strat(self.config._strategies)
 		self.fcast = signals.Forecast()
-
+		self.manual_trading = None
 
 		# Data to display 
 		self._hist_data = [] # Trade history - fetch from mt5, and restructure
@@ -76,17 +76,6 @@ class App(ctk.CTk):
 		self.build_right_sidebar()
 		self.build_mid_column()
 
-
-	def build_main_header(self):
-
-		# Header and Title
-		self.header_frame = ctk.CTkFrame(self, border_color = 'white')
-		self.main_header = ctk.CTkLabel(self.header_frame, width = 250, height = 0, 
-			text = self.config._root_title, font = ctk.CTkFont(size = 20, weight = 'bold'))
-
-
-		self.header_frame.grid(row = 0, column = 1, padx = 30, pady = (10, 0))
-		self.main_header.grid(row = 0, column = 0, padx = 20, pady = 10, sticky = '')
 
 
 	def build_mid_column(self):
@@ -136,7 +125,8 @@ class App(ctk.CTk):
 
 		self.right_sb_frame.grid(row = 0, column = 2, columnspan = 2, rowspan = 4, sticky = 'nsew')
 		#self.right_sb_frame.grid_columnconfigure(0, weight = 1)
-		self.build_strat_sidebar_elements()
+		#self.build_strat_sidebar_elements()
+		gui.Strat_Sidebar(self.right_sb_frame, self._strat_names, self._algo_trading_enabled)
 
 	def build_sidebar_elements(self):
 
@@ -170,25 +160,6 @@ class App(ctk.CTk):
 		self.mt5_button.grid(row = 6, column = 0, padx = 10, pady = 5)		
 		self.cfg_button.grid(row = 7, column = 0, padx = 10, pady = 5)		
 		self.abt_button.grid(row = 8, column = 0, padx = 10, pady = (5, 10))
-
-	def build_strat_sidebar_elements(self):
-
-		# Strategies in strategies folder
-		strats = self._strat_names
-		algo_button_status, algo_button_clr = self.algo_trading_button_color()
-
-		header = ctk.CTkLabel(master = self.right_sb_frame,
-			text = 'STRATEGIES', font = ctk.CTkFont(size = 14, weight = 'bold'))
-		self.algo_trading_button = ctk.CTkButton(self.right_sb_frame, text = algo_button_status,
-			fg_color = algo_button_clr, hover_color = algo_button_clr, command = self.toggle_algo_trading)
-
-		header.grid(row = 0, column = 0, columnspan = 2, padx = 30, pady = (20, 10))
-		self.algo_trading_button.grid(row = 1, column = 0, columnspan = 2, padx = 30, pady = (10, 20))
-
-		# Build Strategies list (label + Switch) 
-		for i, strat in enumerate(strats):
-			strat_name = ctk.CTkLabel(self.right_sb_frame, text = strat.replace('.py', ''))
-			strat_name.grid(row = i + 2, column = 0, padx = (10, 10), pady = (0, 10))
 
 
 	def build_table(self, master, headers, data):
@@ -242,11 +213,11 @@ class App(ctk.CTk):
 
 		elif name == 'Manual Trading':
 			# Manual Trading Tab
-			if len(self._pending_order_params) == 0:
-				self.build_manual_trading()
+			if self.manual_trading is None:
+				self.manual_trading = gui.Manual_Trading(self.tabview.tab('Manual Trading'))
 			else:
 				if self._symbols_list is not None:
-					self.symbols_dropdown.configure(values = self._symbols_list)
+					self.manual_trading.update_symbols_dropdown(self._symbols_list)
 
 		elif name == 'Strategies':
 			# Strategies Tab
@@ -387,104 +358,7 @@ class App(ctk.CTk):
 		self._active_strats_switch.remove(switch_to_remove)
 		self.build_active_strats()
 
-	def build_manual_trading(self):
-		# Manual Trading Page
-
-		symbols_list = ['Symbols']
-		option_menu_var = ctk.StringVar(value = 'Symbols')
-		po_params = ['Price', 'Stop Loss', 'Take Profit', 'Volume']
-
-		self.symbol_frame = ctk.CTkFrame(self.tabview.tab('Manual Trading'))
-		#self.symbol_frame.grid(row = 0, column = 0, columnspan = 2, padx = 10, pady = 10)
-		self.symbol_label = ctk.CTkLabel(self.symbol_frame, text = 'Symbol')
-		self.symbols_dropdown = ctk.CTkOptionMenu(self.symbol_frame, 
-			values = symbols_list, variable = option_menu_var)
-		self.po_frame = ctk.CTkFrame(self.symbol_frame)
-		self.po_header = ctk.CTkLabel(self.po_frame, text = 'PENDING ORDER')
-
-
-		self.symbol_frame.pack(fill = 'x')
-		self.symbol_frame.grid_columnconfigure((0, 1), weight = 1)
-		self.symbol_frame.grid_rowconfigure((0, 1), weight = 1)
-		self.symbol_label.grid(row = 0, column = 0, padx = 20, pady = (20, 10))
-		self.symbols_dropdown.grid(row = 0, column = 1, padx = 20, pady = 20)
-		self.po_frame.grid(row = 1, column = 0, padx = 10, pady = 10)
-		self.po_frame.grid_rowconfigure(4, weight = 1)
-		self.po_header.grid(row = 0, column = 0, columnspan = 2, padx = 20, pady = 10)
-
-		# PRICE FIELDS
-		for i, param in enumerate(po_params):
-			self.po_label = ctk.CTkLabel(self.po_frame, text = param)
-			self.po_field = ctk.CTkEntry(self.po_frame)
-
-			self.po_label.grid(row = i + 1, column = 0, padx = 20, pady = 10)
-			self.po_field.grid(row = i + 1, column = 1, padx = 20, pady = 10)
-
-			self._pending_order_params.append((self.po_field))
-
-		self.blim_button = ctk.CTkButton(self.po_frame, text ='Buy Limit', 
-			command = lambda order_type = 'Buy Limit': self.send_pending_order(order_type))
-		self.slim_button = ctk.CTkButton(self.po_frame, text = 'Sell Limit', 
-			command = lambda order_type = 'Sell Limit' : self.send_pending_order(order_type))
-		self.manual_trading_frame = ctk.CTkFrame(self.symbol_frame)
-		self.manual_header = ctk.CTkLabel(self.manual_trading_frame, text = 'MARKET ORDER')
-
-		self.blim_button.grid(row = 5, column = 1, padx = 20, pady = 10)
-		self.slim_button.grid(row = 5, column = 0, padx = 20, pady = 10)		
-		self.manual_trading_frame.grid(row = 1, column = 1, padx = 10, pady = 10)
-		self.manual_trading_frame.grid_rowconfigure(4, weight = 1)
-		self.manual_header.grid(row = 0, column = 0, columnspan = 2, padx = 20, pady = 10)
-
-
-
-	# Buy Limit Sell Limit
-	def send_pending_order(self, order_type: str):
-		# Processing order form
-
-		# Creates a list containing trade info to send to trade handler
-		order_params = ['Manual', self.symbols_dropdown.get(), order_type, 'Pending']
-		
-		for order in self._pending_order_params:
-			price = float(order.get()) if order.get() != '' else 0
-			order_params.append(price)
-
-		# Process order send
-		pending_order = templates.Trade_Package(order_params) # repackaging
-
-		'''
-		Trade handler class, explore possibility of creating class instance 
-		on init instead of internally.
-		'''
-		trade_handler = event.trade_handler
-
-		# Sends packaged order parameters to MT5 event handler
-		trade_handler.send_order(pending_order) 
-
 		# BUTTON COMMANDS
-	def algo_trading_button_color(self):
-
-		# Returns algo trading button color
-		status = 'Enabled' if self._algo_trading_enabled else 'Disabled'
-		color = 'green' if self._algo_trading_enabled else 'grey'
-		ret_str = f'Algo Trading {status}'
-		return ret_str, color
-	
-	def toggle_algo_trading(self):
-
-		# Toggle algo trading status, and updates algo trading button color
-		self._algo_trading_enabled = not self._algo_trading_enabled
-		algo_status, algo_clr = self.algo_trading_button_color()
-		self.algo_trading_button.configure(text = algo_status, fg_color = algo_clr, hover_color = algo_clr)
-		state = 'normal' if self._algo_trading_enabled else 'disabled'
-		for element in self._strat_elements:
-			# element - tuple object containing switch and class instance
-			# element [0] - switch
-			element[0].configure(state = state)
-
-		enabled = 'Enabled' if self._algo_trading_enabled else 'Disabled'
-		_log.info('ROOT : Algo Trading %s', enabled)
-		self.mt5_py._algo_trading_enabled = self._algo_trading_enabled
-		# Toggle strategy switches
 
 	def update_account_data(self, data):
 	# General Helper function for updating left sidebar (Can be called on change account)
