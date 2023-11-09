@@ -6,24 +6,6 @@ import pandas as pd
 # Local Imports
 import templates
 import config
-'''
-Custom MT5 Class for handling MT5 calls
-
-ATTRIBUTES:
-1. Path = MT5 executable path 
-2. pl_hist = Profit / Loss history
-3. Symbols = symbols in mt5 terminal
-
-
-METHODS:
-1. launch_mt5() - launches MT5 terminal
-2. fetch_account_info() - fetches account info (acct num, server, balance, etc)
-3. fetch_order_history() - cancelled orders
-4. fetch_open_positions() - fetches current open positions
-5. fetch_symbols() - fetches available symbols and stores in symbols attribute
-6. request_price_data() - requests price data and returns it to algo
-7. send_order() - trade request from order package from trade handler
-'''
 
 _log = logging.getLogger(__name__)
 
@@ -31,7 +13,23 @@ _log = logging.getLogger(__name__)
 
 
 class MT5_Py():
+	"""Main class for handling MT5 operations
 
+	...
+
+	Methods
+	-------
+	launch_mt5() - Launches MetaTrader5 terminal
+	check_connection_status() - Checks connection status
+	fetch_account_info() - Fetches account info (acct num, server, balance, etc.)
+	fetch_order_history() - Fetches order history
+	fetch_open_positions() - Fetches current open positions
+	fetch_symbols() - Fetches symbols
+	request_price_data() - Requests Price Data
+	send_order() - Sends Order
+
+
+	"""
 
 	def __init__(self):
 
@@ -49,7 +47,14 @@ class MT5_Py():
 		
 
 	def launch_mt5(self):
+		"""Launches MT5 Terminal
 
+		Returns
+		-------
+		True - MT5 initialized successfully
+		False - MT5 launch failed.
+		
+		"""
 		_log.info('Launching MT5')
 		if not mt5.initialize(path = self.path):
 			_log.error('MT5 Failed to initialize. Code: ', mt5.last_error())
@@ -61,6 +66,12 @@ class MT5_Py():
 			return True
 	
 	def check_connection_status(self):
+		"""Checks MT5 connection status
+
+		Returns
+		-------
+		MT5 connection status
+		"""
     		
 		if mt5.account_info() is None: 
 			self.connection_status = 'Not Connected'
@@ -70,6 +81,15 @@ class MT5_Py():
 
 
 	def fetch_account_info(self):
+		"""Fetches account info from mt5 terminal. 
+
+		Returns
+		-------
+		acct_name - MT5 Account Name
+		acct_num - MT5 Account Num
+		acct_server - MT5 Server 
+		acct_bal - Current Balance
+		"""
 
 		acct_info = mt5.account_info()
 		acct_info = acct_info._asdict()
@@ -85,6 +105,13 @@ class MT5_Py():
 		return acct_name, acct_num, acct_server, acct_bal
 
 	def fetch_order_history(self):
+		"""Fetches order history from mt5
+
+		Returns
+		-------
+		list -> list of order history
+		
+		"""
 
 		if mt5.account_info() == None:
 			_log.info('%s : Not Connected to MT5', self.__source)
@@ -114,6 +141,16 @@ class MT5_Py():
 		return headers, pl_hist[:10]
 
 	def fetch_open_positions(self):
+		"""Fetches open positions from MT5. 
+
+		Returns
+		-------
+		list -> Open positions from mt5
+
+		Notes
+		-----
+		Not Finished
+		"""
 		# FETCH FROM MT5
 		# Dummy data
 		if mt5.account_info() == None:
@@ -128,6 +165,18 @@ class MT5_Py():
 		return headers, data[:10]
 
 	def fetch_symbols(self):
+		"""Fetches symbols from mt5 history
+		
+		Returns
+		-------
+		None - if not connected to mt5 terminal
+		Symbols List - requested symbols
+
+
+		Notes
+		-----
+		Currently hard coded to request FX majors and metals.
+		"""
 		# Fetch symbols
 		fx_path = 'Majors'
 		metals_path = 'Metals'
@@ -139,24 +188,59 @@ class MT5_Py():
 		 (metals_path in symbol.path)]
 		return ret_symbols
 		
+
 	def request_price_data(self, timeframe: str, 
 		symbol: str, request_type: str = 'pos', 
 		start_date: dt = None, 
-		end_date: dt = None, start_index: int = 1, num_bars: int = 1) -> list:
-		# requests price data from mt5 
-		# returns price data
-		# can receive list of symbols, process individually
-		# may return a list of price data to return to strat
-		# each individual strat may request different price data at different points in time
-		
-		# GET BY INDEX
-		#rates = mt5.copy_rates_from_pos('EURUSD', mt5.TIMEFRAME_D1, 0, 10)
-		#print(rates)
+		end_date: dt = None, start_index: int = 1, num_bars: int = 1):
+		"""Requests price data from MT5. 
 
+		Parameters
+		----------
+		timeframe : str
+			timeframe for requested data(m1,m5,m15,m30,h1,h4,d1,w1,mn1)
 		
-		#print('MT5 TF: ', timeframe)
-		#print('CONVERTED: ', timeframe_converter[timeframe])
+		symbol : str
+			symbol for requested data
 
+		request_type : str 
+			Default: 'pos'
+
+			option for requesting data from mt5 (pos, date, rates)
+
+			pos - fetch based on position
+			date - fetch based on start date 
+			rates - fetch based on date range
+		
+		start_date: dt
+			Default: None
+
+			start date for requesting data from mt5. used when selecting
+			'date' or 'rates' as request_type.
+
+		end_date: dt
+			Default: None
+
+			end date for requesting data from mt5. used when 'rates' is 
+			selected as request_type
+
+		start_index: int
+			Default: 1
+
+			start index for requesting data from mt5. used when 'pos' is 
+			selected as request_type
+		
+		num_bars: int
+			Default: 1 
+
+			number of bars to receive. used when selecting 'pos' or 'date'
+			as request_type.
+
+		Return
+		------
+		list
+			list of received data, or empty list 
+		"""
 		timeframe_converter = {
 			'm1' : mt5.TIMEFRAME_M1,
 			'm5' : mt5.TIMEFRAME_M5,
@@ -174,51 +258,39 @@ class MT5_Py():
 
 		elif request_type == 'date':
 			rates = mt5.copy_rates_from(symbol, tf, start_date, num_bars)
-	
+
 		elif request_type == 'rates':
 			rates = mt5.copy_rates_range(symbol, tf, start_date, end_date)
-		
+
 		if rates is None:
 			return []
-
-		
-
-		#print(rates)
-		#print(rates.shape)
-		#arr = np.array(rates)
-		#arr[:, :1] = dt.fromtimestamp(arr[:, :1])
-		#print(arr)
-
-		# TRY: format rates into a numpy array,
-		# columns to drop from last: 3
-		# number of columns = arr.shape[1]
-		# SLICE: arr[:,:arr.shape[1] - 3]
 
 		data = pd.DataFrame(data = rates)
 		data['time'] = pd.to_datetime(data['time'], unit = 's')
 		data = data.loc[:, ['time', 'open', 'high', 'low', 'close']]
 		arr = np.array(data)
-		#rates = [list(rate) for rate in rates]
-		#arr = np.array(rates)
-		#arr = arr[:,:arr.shape[1] - 3]
-		
 		return arr
 
 
-	def send_order(self, request_form: dict) -> mt5.OrderSendResult:
-		'''
-		expecting this function to be called from trade handler. 
-		trade handler is the bridge from multiple algos to mt5. 
-		algos send an order package to trade handler, and sent to this function 
-		algo -> trade handler - > send_order
+	def send_order(self, request_form: dict):
+		"""Sends order
 
-		returns confirmation to return to trade handler, uploads successful
-		trade to sql db for storage
+		Parameters
+		----------
+		request_form: dict
+			request form for sending MT5 orders.
+		
+		Returns
+		-------
+		mt5.OrderSendResult
+			results in either success or fail. 
 
-		TODO: 
-		1. Execution validation: success / fail
-
-		'''
+		Notes
+		-----
+		This method should only be called Trade Handler, which bridges multiple algos to MT5.
+		Algos send an 'Order Package' to trade handler, and sent to this function.
+		Algo -> Trade Handler -> send_order
+		"""
 
 		if mt5.account_info() == None:
 			_log.info('%s : Not Connected to MT5', self.__source)

@@ -1,23 +1,3 @@
-'''
-TODOS/NOTES
-
-- calculate MA/pivot internally 
-
-
-INDICATORS: 
-- ma
-- pivot
-
-
-METHODS:
-request data ->  
-get signal -> returns long or short or neutral for the week 
-
-MISC:
-also show last signal date
-store to sql or csv? 
-'''
-
 from event.mt5 import MT5_Py
 import numpy as np
 import pandas as pd
@@ -28,6 +8,16 @@ import logging
 _log = logging.getLogger(__name__)
 
 class Forecast:
+    """Main class for creating forecasts based on MA_Query Class
+
+    ...
+
+    Methods
+    -------
+    update() - Updates signals
+    get_data() - Processes provided csv to generate signals dataframe
+    read_data() - Reads data from csv to display on UI
+    """
     
     def __init__(self):
         self.mt5_py = MT5_Py()
@@ -38,6 +28,8 @@ class Forecast:
         self._symbols = ['EURUSD','AUDUSD','GBPUSD','USDCHF','USDCAD','USDJPY']
 
     def update(self):
+        """Updates signals 
+        """
         _log.info('Updating Signals')
         for sym in self._symbols:
             local = f'signals/forecasts/{sym}_W.csv'
@@ -56,6 +48,19 @@ class Forecast:
 
 
     def get_data(self, df: pd.DataFrame, path:str, symbol:str):
+        """Processes provided CSV to generate signals dataframe
+
+        Parameters
+        ----------
+        df: pd.DataFrame
+            CSV file in DataFrame format to pass on to MA_Query Class
+        
+        path: str
+            Path to save cSV
+        
+        symbol: str
+            Symbol to process
+        """
         last_date = df.index[-1]
         start_date = (last_date + pd.Timedelta(days = 1)).to_pydatetime()
 
@@ -80,6 +85,12 @@ class Forecast:
         _log.info(f'{path} has been updated.')
     
     def read_data(self):
+        """Reads data from CSV to display on to UI
+
+        Returns
+        -------
+        list -> List of signals as a Signal object
+        """
         fcast = {
             1 : 'Long',
             0 : 'Neutral',
@@ -95,10 +106,11 @@ class Forecast:
         
 
 class Signal:
+    """Signal Object
+    """
     def __init__(self, symbol:str, date: dt, signal:str):
         self.symbol = symbol 
         self.date = date 
         self.signal = signal 
 
-        #print('SYMBOL: ', self.symbol, ' DATE: ',self.date, ' SIGNAL: ', self.signal)
-
+      

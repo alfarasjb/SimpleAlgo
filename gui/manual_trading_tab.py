@@ -3,12 +3,29 @@ import templates
 import event
 
 class Manual_Trading:
+    """Manual Trading class for discretionary trading
+
+    ...
+
+    Methods
+    -------
+    build_manual_trading() - Builds UI
+    send_pending_order() - Sends pending order
+    update_symbols_dropdown() - Updates symbols dropdown menu
+
+    TODOS
+    -----
+    1. Market Execution
+
+    """
     def __init__(self, master):
         self.master = master
         self._pending_order_params = []
         self.build_manual_trading()
 
     def build_manual_trading(self):
+        """ Builds UI
+        """
         symbols_list = ['Symbols']
         option_menu_var = ctk.StringVar(value = 'Symbols')
         po_params = ['Price', 'Stop Loss', 'Take Profit', 'Volume']
@@ -56,6 +73,13 @@ class Manual_Trading:
 
     # Buy Limit Sell Limit
     def send_pending_order(self, order_type: str):
+        """Sends pending order
+
+        Parameters
+        ----------
+        order_type: str
+            Buy Limit or Sell Limit
+        """
         # Processing order form
 
         # Creates a list containing trade info to send to trade handler
@@ -79,6 +103,13 @@ class Manual_Trading:
         # Sends packaged order parameters to MT5 event handler
         trade_handler.send_order(pending_order) 
                 
-    def update_symbols_dropdown(self, symbols):
+    def update_symbols_dropdown(self, symbols: list):
+        """Updates symbols dropdown menu
+
+        Parameters
+        ----------
+        symbols: list
+            updates symbols dropdown with symbols list requested from mt5
+        """
         # FIX UPDATING 
         self.symbols_dropdown.configure(values = symbols)

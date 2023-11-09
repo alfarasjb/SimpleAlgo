@@ -9,6 +9,16 @@ Loading UI config, and path
 _log = logging.getLogger(__name__)
 
 class Load_Config():
+	"""Loads UI config, mt5 path, and strategies path from json file.
+
+	...
+
+	Methods
+	-------
+	load_json_file() - Loads UI config json file containing window size
+	load_settings_file() - Loads MT5 path and strategies folder
+	update_paths - Updates mt5 and strategies path
+	"""
 	def __init__(self):
 
 		self.__source = 'CONFIG'
@@ -42,20 +52,41 @@ class Load_Config():
 		_log.info('%s : MT5 PATH: %s', self.__source, self._path)
 		_log.info('%s : STRATEGIES PATH: %s', self.__source, self._strategies)
 
+	@staticmethod
+	def load_json_file():
+		"""Loads UI config JSON file containing window size
+		"""
+		try:
+			with open(r'config//configs.json') as json_file:
+				config = json.load(json_file)
+				return config
+		except Exception:
+			_log.info('CFG: Config File is Missing.')
 
-	def load_json_file(self):
-		# loads ui config json file
-		with open(r'config//configs.json') as json_file:
-			config = json.load(json_file)
-			return config
-
-	def load_settings_file(self):
-		# loads mt5 path and strategies folder json file
-		with open('config//settings.json') as json_file:
-			cfg = json.load(json_file)
-			return cfg
+	@staticmethod
+	def load_settings_file():
+		"""Loads MT5 path and Strategies folder
+		
+		"""
+		try:
+			with open('config//settings.json') as json_file:
+				cfg = json.load(json_file)
+				return cfg
+		except Exception:
+			_log.info('CFG: Config File is Missing.')
 
 	def update_paths(self, path: str, strategies: str):
+		"""Updates mt5 and strategies path.
+	
+		Parameters
+		----------
+		path: str
+			MT5 executable path
+
+		strategies: str 
+			Strategies folder path. The program will look for strategies here.
+		
+		"""
 		# Updates settings on json file
 		self._path = path
 		self._strategies = strategies

@@ -17,6 +17,17 @@ tf_converter = {
 }
 
 class Base:
+	"""Strategy Base Class
+
+	...
+
+	Methods
+	-------
+	log() - Logging method
+	toggle_strat_state() - Toggles strategy (enabled or disabled)
+	request_data() - Requests data from MT5 Class
+	get_next_interval() - Get next interval based on timeframe
+	"""
 
 
 	def __init__(self, name: str, timeframe: str, symbol: str, enabled: bool):
@@ -35,12 +46,25 @@ class Base:
 		self.divisor = tf_converter[self.timeframe]
 
 	def log(self, message: str):
+		"""Logging Method
+
+		Parameters
+		----------
+		message: str
+			Message to print on logs
+		"""
 		# LOGGING
 		assert type(message) == str, 'Invalid Message Type'
 		_log.info('STRAT: %s | SYMBOL: %s | TIMEFRAME: %s | %s', self.name, self.symbol, self.timeframe, message)
 		
 	def toggle_strat_state(self, value: bool):
-		# toggles strat state (enabled or disabled)
+		"""Enables/disables trading on this strategy
+
+		Parameters
+		----------
+		value: bool 
+			Strategy enabled or disabled
+		"""
 		assert type(value) == bool, 'Invalid Switch Type'
 		self.enabled = value
 
@@ -66,7 +90,47 @@ class Base:
 			raise ValueError('Invalid Switch Value')
 
 	def request_data(self, request_type: str = 'pos', start_index: int = 0, num_bars: int = 1, start_date: str = '', end_date: str = ''):
-		# call mt5 
+		"""Requests price data from MT5_Py Class
+
+		Parameters
+		----------
+		request_type: str
+			Default: 'pos'
+
+			option for requesting data from mt5 (pos, date, rates)
+
+			pos - fetch based on position
+			date - fetch based on start date 
+			rates - fetch based on date range
+		
+		start_index: int
+			Default: 1
+
+			start index for requesting data from mt5. used when 'pos' is 
+			selected as request_type
+
+		num_bars: int
+			Default: 1 
+
+			number of bars to receive. used when selecting 'pos' or 'date'
+			as request_type.
+
+		start_date: str
+			Default: None
+
+			start date for requesting data from mt5. used when selecting
+			'date' or 'rates' as request_type.
+
+		end_date: str
+			Default: None
+
+			end date for requesting data from mt5. used when 'rates' is 
+			selected as request_type
+
+		Returns
+		-------
+		list -> list of received data or None
+		"""
 
 		ohlc_list = self.mt5.request_price_data(timeframe = self.timeframe, 
 			symbol = self.symbol, request_type = request_type, start_date = start_date, 
@@ -76,6 +140,19 @@ class Base:
 		return ohlc_list
 
 	def get_next_interval(self):
+		"""Get next time interval for price data request
+
+		Returns
+		-------
+		dt -> next_interval
+			Local Time of next interval
+
+		int -> ts
+			Timestamp of next interval (Local)
+
+		dt -> server_time
+			Server time of next interval
+		"""
 		# get next time interval for price data request
 		# return time, and timestamp
 		now = dt.now()

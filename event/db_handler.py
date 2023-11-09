@@ -24,6 +24,9 @@ from datetime import datetime as dt
 
 
 class DB_Handler():
+	"""
+	Handles and manages queries to SQL database.
+	"""
 	def __init__(self):
 		database = 'pyalgo' # put this in a different file
 		password = '123456789' # put this in a different file
