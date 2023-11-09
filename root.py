@@ -38,6 +38,7 @@ class App(ctk.CTk):
 		self.init_strat = strategies.Init_Strat(self.config._strategies)
 		self.fcast = signals.Forecast()
 		self.manual_trading = None
+		self.strats_tab = None
 
 		# Data to display 
 		self._hist_data = [] # Trade history - fetch from mt5, and restructure
@@ -208,143 +209,19 @@ class App(ctk.CTk):
 
 		elif name == 'Strategies':
 			# Strategies Tab
-			self.build_strategies_tab()
-			self.build_active_strats()
+			if self.strats_tab is None:
+				self.strats_tab = gui.Strats_Tab(self.tabview.tab('Strategies'), self.init_strat)
+				self.strats_tab.build_active_strats()
 
+			
 		elif name == 'Signals':
 			# Signals Tab
-			self.build_signals_tab()
-
-	
-	def build_signals_tab(self):
-		if len(self._signals_list) == 0:
-			signals = self.fcast.read_data()
-			self.gui = gui.Signals_Tab(self.tabview.tab('Signals'), signals)
-			self._signals_list = self.gui._signals_elements
-		
-		# BUILD UI 
-
-	def build_strategies_tab(self):
-
-		strat_names = list(self._strat_objects.keys())
-		symbols_list = ['Symbols']
-		timeframes = ['m1', 'm5', 'm15', 'm30']
-		strat_menu_var = ctk.StringVar(value = 'Strategies')
-		tf_menu_var = ctk.StringVar(value = 'Timeframe')
-		symbols_menu_var = ctk.StringVar(value = 'Symbols')
-		# invoke this class
-		#self._strat_objects[0](timeframe = 'm15', symbol = 'GBPUSD')
-
-		# HEADER FRAME (For input feels and dropdown menu)
-		self.strat_hdr_frame = ctk.CTkFrame(self.tabview.tab('Strategies'))
-		self.strats_dropdown = ctk.CTkOptionMenu(self.strat_hdr_frame,
-			values = strat_names, variable = strat_menu_var)
-		self.tf_dropdown = ctk.CTkOptionMenu(self.strat_hdr_frame,
-			values = timeframes, variable = tf_menu_var)
-		self.target_symbol = ctk.CTkEntry(self.strat_hdr_frame, placeholder_text = 'Symbol')
-		self.add_button = ctk.CTkButton(self.strat_hdr_frame, text = 'Confirm',
-			command = self.add_strat, width = 70)
-
-		self.strat_hdr_frame.grid(row = 0, column = 0, padx = 20, pady = 10)
-		self.strats_dropdown.grid(row = 0, column = 0, padx = 20, pady = 10)
-		self.tf_dropdown.grid(row = 0, column = 1, padx = 20, pady = 10)
-		self.target_symbol.grid(row = 0, column = 2)
-		self.add_button.grid(row = 0, column = 3, padx = 20, pady = 10)
-
-		### TIMEFRAME
-
-		#self.tf_entry = ctk.CTkEntry(self.strat_hdr_frame, placeholder_text = 'Timeframe')
-		#self.tf_entry.grid(row = 0, column = 1, padx = 10, pady = 10)
-
-		#self.target_symbol = ctk.CTkOptionMenu(self.strat_hdr_frame,
-		#	values = symbols_list, variable = symbols_menu_var)
-		#self.target_symbol.grid(row = 0, column = 2, padx = 10, pady = 10)
-
-		### SYMBOLS AS ENTRY
+			if len(self._signals_list) == 0:
+				signals = self.fcast.read_data()
+				self.gui = gui.Signals_Tab(self.tabview.tab('Signals'), signals)
+				self._signals_list = self.gui._signals_elements
 
 		
-
-		
-	def build_active_strats(self):
-		pady = (5, 0)
-		self._active_strats_switch = []
-		labels = ['Strategy', 'Symbol', 'Timeframe', 'Toggle', '']
-		### ===== ACTIVE STRATEGIES LIST ===== ### 
-		self.scroll_frame = ctk.CTkScrollableFrame(self.tabview.tab('Strategies'), width = 650, fg_color = 'transparent')
-		self.scroll_frame.grid(row = 1, column = 0, columnspan = 3, padx = 10)
-		self.scroll_frame.grid_columnconfigure(3, weight = 1)
-		
-		for j, label in enumerate(labels):
-			self.header_label = ctk.CTkLabel(self.scroll_frame, text = label)
-			self.header_label.grid(row = 0, column = j, padx = 40, pady = pady)
-
-		## BUILD HEADER
-		for i, st in enumerate(self.init_strat._strategies_in_table):
-			self.build_strat_row(st[0].name, st[0].timeframe, st[0].symbol, i)
-
-	def switch_strat(self, index):
-		strategy = self.init_strat._strategies_in_table[index]
-		switch = self._active_strats_switch[index]
-		self.init_strat.running_strategy(index, switch.get())
-		self.init_strat._strategies_in_table[index][1] = switch.get() # EDIT SWITCH STATE
-
-	def add_strat(self):
-		'''
-		CHECKS: 
-		1. Existing instances for same symbol and timeframe
-		'''
-		key = self.strats_dropdown.get() # name of the strategy
-		obj = self._strat_objects[key] if key in list(self._strat_objects.keys()) else None
-		strats_in_table = len(self.init_strat._strategies_in_table)
-		timeframe = self.tf_dropdown.get()
-		symbol = self.target_symbol.get()
-
-		if obj != None:
-			# INIT STRAT - ADD STRAT TO TABLE
-			self.init_strat.add_strat_to_table(obj, timeframe, symbol, key)
-			self.build_strat_row(key, timeframe, symbol, strats_in_table)
-		else: 
-			print(key)
-
-
-	def build_strat_row(self, strat_name, timeframe, symbol, i):
-
-		state = self.init_strat._strategies_in_table[i][1]
-		pady = (5, 0)
-		padx = (20, 0)
-		self.st_label = ctk.CTkLabel(self.scroll_frame, text = strat_name)
-		self.st_symbol = ctk.CTkLabel(self.scroll_frame, text = symbol)
-		self.st_tf = ctk.CTkLabel(self.scroll_frame, text = timeframe)
-		self.st_switch = ctk.CTkSwitch(self.scroll_frame, text = '',
-		 command = lambda index = i : self.switch_strat(index))
-		self.st_cancel_button = ctk.CTkButton(self.scroll_frame, text = 'X',
-			command = lambda index = i : self.remove_strat(index), width = 20, height = 20)
-
-		self.st_label.grid(row = i + 1, column = 0, padx = padx, pady = pady)
-		self.st_symbol.grid(row = i + 1, column = 1, padx = padx, pady = pady)
-		self.st_tf.grid(row = i + 1, column = 2, padx = padx, pady = pady)
-		self.st_switch.grid(row = i + 1, column = 3, padx = (50, 5), pady = pady)
-		self.st_cancel_button.grid(row = i + 1, column = 4, padx = 0, pady = pady)
-
-
-		if state == 1:
-			self.st_switch.select()
-		elif state == 0:
-			self.st_switch.deselect()
-
-		self._active_strats_switch.append(self.st_switch)
-
-	def remove_strat(self, i):
-		# REMOVE FROM LIST AND REDRAW
-		strat_to_remove = self.init_strat._strategies_in_table[i]
-		switch_to_remove = self._active_strats_switch[i]
-
-		if strat_to_remove[1] == 1:
-			self.init_strat.running_strategy(i, 0)
-		self.init_strat.remove_strat_from_table(strat_to_remove)
-		self._active_strats_switch.remove(switch_to_remove)
-		self.build_active_strats()
-
 		# BUTTON COMMANDS
 
 	def update_account_data(self, data):
