@@ -3,6 +3,16 @@ import customtkinter as ctk
 from itertools import product
 
 class Signals_Tab:
+    """Buils Signals Tab on main UI
+
+    ...
+
+    Methods
+    -------
+    build_signals_row() - builds a signal row for individual symbols
+    refresh() - recalculates signals
+    empty() - returns if list is empty
+    """
     def __init__(self, master, data):
         self.master = master # tabview name 
         self.data = data # returned data from fcast
@@ -31,6 +41,8 @@ class Signals_Tab:
         self.build_signals_row()
 
     def build_signals_row(self):
+        """Builds a signal row for individual symbols
+        """
         master = self.content_frame 
         for i, d in enumerate(self.data):
             y = (i * 30) + 10
@@ -45,8 +57,16 @@ class Signals_Tab:
             self._signals_elements.append([self.symbol_row, self.date_row, self.signal_row])
     
     def refresh(self):
-        pass 
+        """Recalculates signals
+        """
+        raise NotImplementedError
 
 
     def empty(self):
+        """Checks if list is empty
+
+        Returns
+        -------
+        bool - True if list is not empty
+        """
         return len(self._signals_elements) == 0

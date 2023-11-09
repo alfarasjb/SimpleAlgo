@@ -29,6 +29,19 @@ METHODS
 
 
 class Trade_Handler():
+	"""Main class for handling trade operations.
+
+	...
+
+	Methods
+	-------
+	send_order() - Send order to MT5_Py Class
+	close_trade()
+	close_pos() - Closes Trades
+	store_to_csv() - Stores filled trade to CSV
+	store_to_sql() - Stores filled trade to SQL database
+
+	"""
 
 
 	def __init__(self):
@@ -38,23 +51,39 @@ class Trade_Handler():
 
 		self.__source = 'TRADE HANDLER'
 
-	def send_order(self, trade: templates.Trade_Package) -> bool:
+	def send_order(self, trade: templates.Trade_Package):
+		"""Method for sending order via MT5_Py
+		
+		Parameters
+		----------
+		trade: Trade_Package
+			trade package object, converted to request dict accepted by MT5 class
 
-		'''
-		BUILDING TRADE REQUEST
-		keys : description
+		Returns
+		-------
+		bool - false if trade failed
 
-		action: 
-			TRADE_ACTION_DEAL - market order
-			TRADE_ACTION_PENDING - pending order
-			TRADE_ACTION_SLTP - change sl/tp
-			TRADE_ACTION_MODIFY - change parameters of prev placed order
-			TRADE_ACTION_REMOVE - remove pending order
-		'''
+		Notes 
+		-----
+		1. Run mt5.symbol_select
+			this adds symbol to market watch (trade would fail otherwise)
+			provides access to tick data
+
+		2. Building Trade Request:
+			keys: description
+			action: 
+				TRADE_ACTION_DEAL - market order
+				TRADE_ACTION_PENDING - pending order
+				TRADE_ACTION_SLTP - change sl/tp
+				TRADE_ACTION_MODIFY - change parameters of prev placed order
+				TRADE_ACTION_REMOVE - remove pending order
+		
+		"""
 		
 		_log.info('%s : Processing Order', self.__source)
 
-		# REQUIRED: To access tick data, must add symbol to market watch
+		# REQUIRED: To access tick data, must add symbol to market watch 
+		# DO NOT TOUCH THIS LINE
 		selected = mt5.symbol_select(trade.order_symbol)
 		order_converter = {
 			'Buy Limit' : mt5.ORDER_TYPE_BUY_LIMIT,
@@ -69,7 +98,6 @@ class Trade_Handler():
 		}
 
 		# ===== MAIN REQUEST TEMPLATE ===== # 
-		# Restore after testing 
 		order_action = deal_converter[trade.order_deal]
 		symbol = trade.order_symbol
 		order_type = order_converter[trade.order_type]
@@ -121,7 +149,12 @@ class Trade_Handler():
 			_log.info('%s : Order Failed. Code: %i', self.__source, order_request.retcode)
 			return False
 	
-	def close_trade(self, trade: templates.Trade_Package) -> bool:
+	def close_trade(self, trade: templates.Trade_Package):
+		"""
+		Returns
+		-------
+		bool
+		"""
 		# what to close
 		# incoming order if sell, close buys and vice versa
 		# how to process closing
@@ -183,6 +216,14 @@ class Trade_Handler():
 
 
 	def close_pos(self, symbol: str):
+		"""Closes trades for requested symbol
+
+		Parameters
+		----------
+		symbol: str
+			Orders on this symbol will be closed. Requested by strategy.
+		
+		"""
 		_log.info('%s : Closing Trades', self.__source)
 		action = mt5.TRADE_ACTION_DEAL
 		symbol = symbol
@@ -215,12 +256,32 @@ class Trade_Handler():
 			close_request = self.mt5_object.send_order(request)
 
 	def store_to_csv(self):
+		"""Stores trade to CSV
+		"""
 		# send info to csv
 		# create csv storage class, use pandas to process
 		# create a dataframe and append to csv
-		return None
+		raise NotImplementedError
 
 	def store_to_sql(self, order: mt5.OrderSendResult, src: str):
+		"""Stores trade to SQL Database
+
+		Parameters
+		----------
+		order: mt5.OrderSendResult
+			Stores to SQL if trade is filled.
+
+		src: str
+			Strategy that called this trade
+
+		Returns
+		-------
+		bool - True if successfully executed
+
+		Notes
+		-----
+		Temporarily Disabled
+		"""
 		# send info to db handler
 		
 		format = '%Y-%m-%d %H:%M:%S'

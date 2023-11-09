@@ -1,4 +1,6 @@
-
+"""
+Root App File
+"""
 
 import tkinter as tkinter
 import tkinter.messagebox
@@ -41,9 +43,9 @@ class App(ctk.CTk):
 		self._hist_data = [] # Trade history - fetch from mt5, and restructure
 		self._open_pos_data = [] # Open Positions - fetch from mt5 and restructure
 		self._sidebar_elements = [] # Account Info sidebar elements
-		self._strat_elements = [] # Strategies Sidebar elements
-		self._pending_order_params = []
-		self._market_order_params = []
+		#self._strat_elements = [] # Strategies Sidebar elements
+		#self._pending_order_params = []
+		#self._market_order_params = []
 		self._active_strats_switch = []
 		self._signals_list = []
 
@@ -59,7 +61,7 @@ class App(ctk.CTk):
 
 		# Dynamic Elements
 		self._symbols_list = self.mt5_py.symbols
-		self.symbols_dropdown = None
+		#self.symbols_dropdown = None
 
 
 		# Main window configuration
@@ -92,21 +94,6 @@ class App(ctk.CTk):
 		self.tabview = ctk.CTkTabview(self, command = self.tab_func)
 		self.tabview.grid(row = 1, column = 1, padx = 20, pady = 10, sticky = 'nsew') # Position in master 
 		[self.tabview.add(tab_name) for tab_name in tab_names] # Creates individual tabs
-
-		#self.open_pos_label = ctk.CTkLabel(self.tabview.tab(tab_names[0]), text = 'CONNECT TO MT5', 
-		#	text_color = 'grey', font = ctk.CTkFont(size = 16, weight = 'bold'))
-		#self.open_pos_label.pack(padx = 20, pady = 50)
-
-		#self.hist_label = ctk.CTkLabel(self.tabview.tab(tab_names[1]), text = 'CONNECT TO MT5',
-		#	text_color = 'grey', font = ctk.CTkFont(size = 16, weight = 'bold'))
-		#self.hist_label.pack(padx = 20, pady = 50)
-
-		# tab 3
-		self.tab3_label = ctk.CTkLabel(self.tabview.tab(tab_names[2]), text = f'{tab_names[2]} Label')
-		
-		self.tab4_label = ctk.CTkLabel(self.tabview.tab(tab_names[3]), text = f'{tab_names[3]} Label')
-		
-		self.tab5_label = ctk.CTkLabel(self.tabview.tab(tab_names[3]), text = f'{tab_names[3]} Label')
 		self.tab_func()
   
 	def build_left_sidebar(self):

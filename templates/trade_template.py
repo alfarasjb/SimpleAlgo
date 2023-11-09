@@ -1,11 +1,10 @@
 
-'''
-Custom Class - Trade Package
-- receives a list of data and reformats it into readable and easily accessible attributes
 
-'''
 
 class Trade_Package():
+	"""
+	Trade_Package - Holds a trade template containing required trade information.
+	"""
 
 
 	def __init__(self, attribs: list):

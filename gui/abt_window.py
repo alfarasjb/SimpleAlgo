@@ -1,22 +1,19 @@
 import customtkinter as ctk 
-
-
 # Local Imports
 import config
 
-
-'''
-About Window:
-Project Details Here
-
-1. Project Info
-2. Repository
-
-etc 
-
-'''
-
 class AbtWindow(ctk.CTkToplevel):
+	"""Creates window displaying project information
+
+	Info
+	----
+	Project Details
+	Github Repository
+
+	Notes
+	-----
+	Not Finished
+	"""
 	def __init__(self):
 		super().__init__()
 

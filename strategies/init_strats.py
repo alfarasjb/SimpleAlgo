@@ -11,6 +11,19 @@ _log = logging.getLogger(__name__)
 
 
 class Init_Strat():
+	"""Main Class for handling strategies in strategy directory
+
+	...
+
+	Methods
+	-------
+	get_strats() - Main function call for building list of available strategies in directory
+	check_class() - Searches line by line for classes in file
+	load_module() - Helper function for loading module for valid strategies
+	add_strat_to_table() - Adds selected strategy to strategies table
+	remove_strat_from_table() - Removes selected strategy from strategies table
+	running_strategy() - Triggers strategy thread and monitors running strategies
+	"""
 	def __init__(self, path = r'.'):
 		# Directory 
 		self.dir_path = path
@@ -24,13 +37,23 @@ class Init_Strat():
 		self._running_strategies = []
 	
 	def get_strats(self):
+		"""Main function call for building list of available strategies in directory
+
+		Returns
+		-------
+		list -> res
+			List of files
+
+		obj -> dict
+			Dictionary of available strategies
+		"""
     	#objective: return list of files, and strategy objects
 		this_file = os.path.basename(__file__)
-		#print('this: ', this_file)
+
 		excluded_files = [this_file, '__init__.py']
 		dir_files = []
 		[dir_files.append(d) for d in os.listdir('.\strategies') if d.endswith('.py') and d not in excluded_files]
-		#print('STRATEGIES IN FOLDER: ', dir_files)
+
 		res = []
 		obj = {}
 		for d in dir_files:
@@ -43,6 +66,19 @@ class Init_Strat():
 		return res, obj
 
 	def check_class(self, f):
+		"""Searches line by line for classes in file
+
+		Parameters
+		----------
+		f: str 
+			Filename of python strategy
+
+		Returns
+		-------
+		k - Class Module
+		class_name: str
+			Class name 
+		"""
 		with open(f'strategies/{f}', 'r') as file:
 			lines = file.readlines()
 			for line in lines: 
@@ -61,7 +97,22 @@ class Init_Strat():
 				except AttributeError:
 					return None, None
 
-	def load_module(self, file_name, class_name):
+	@staticmethod
+	def load_module(file_name, class_name):
+		"""Helper function for loading module for valid strategies
+
+		Parameters
+		----------
+		file_name: str
+			File name of strategy to load
+
+		class_name: str
+			Class name of strategy
+
+		Returns
+		-------
+		Module of selected strategy
+		"""
     	
 		spec = importlib.util.find_spec(f'strategies.{file_name}')
 		module = importlib.util.module_from_spec(spec)
@@ -101,6 +152,29 @@ class Init_Strat():
 	'''
 	
 	def add_strat_to_table(self, obj, timeframe, symbol, key, state = 0):
+		"""Adds selected strategy to strategies table
+
+		Parameters
+		----------
+		obj: Any
+			Strategy Object
+		
+		timeframe: str
+			Timeframe to execute the strategy
+
+		symbol: str
+			Symbol to execute the strategy
+
+		key: str
+			Name of strategy
+
+		state: int 
+			Enabled/Disabled
+
+		Returns
+		-------
+		None -> if strategy is already in table
+		"""
 		for strat in self._strategies_in_table:
 			data = (strat[0].name, strat[0].timeframe, strat[0].symbol)
 			incoming = (key, timeframe, symbol)
@@ -115,13 +189,28 @@ class Init_Strat():
 		_log.info(f'Strategies Table Updated to {len(self._strategies_in_table)}')
 
 	def remove_strat_from_table(self, obj: list):
+		"""Removes strategy from strategies table
+
+		obj: list
+			Strategy in strategy list
+			Format: [Strategy, State]
+		"""
 
 		assert type(obj) == list, f'Invalid Object Type. Received Type: {type(obj)}'
 		assert len(obj) == 2, f'Invalid Object Length. Received Length: {len(obj)}'
 		self._strategies_in_table.remove(obj)
 
 	def running_strategy(self, index, switch_state):
+		"""Triggers strategy thread and monitors running strategies
 
+		Parameters
+		----------
+		index: int 
+			Strategy index in strategies in table (to update)
+
+		switch_state: int
+			Switch state (Enabled/Disabled)
+		"""
 		assert type(index) == int, 'Invalid Index Type'
 		assert type(switch_state) == int, 'Invalid Switch Value Type'
 

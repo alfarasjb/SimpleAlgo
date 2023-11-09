@@ -19,7 +19,18 @@ _log = logging.getLogger(__name__)
 
 
 class CfgWindow(ctk.CTkToplevel):
+	"""Config Window - input fields for configuring path
 
+	...
+	
+	Methods
+	-------
+	path_dialog() - File explorer popup dialog for browsing mt5 executable path
+	strat_dialog() - File explorer popup dialog for browsing strategies directory
+	open_file_dialog() 
+	close() - Closes window on pressing 'Save' button
+	
+	"""
 
 	def __init__(self):
 
@@ -65,13 +76,15 @@ class CfgWindow(ctk.CTkToplevel):
 
 		
 	def path_dialog(self):
-		# File popup dialog for browsing mt5 executable path
+		"""File explorer popup dialog for browsing mt5 executable path
+		"""
 		file = tk.filedialog.askopenfile()
 		self.path_str.configure(text = file.name)
 		self.path = file.name
 
 	def strat_dialog(self):
-		# Folder popup dialog for browsing strategies folder path
+		"""File explorer popup dialog for browsing strategies directory
+		"""
 		file = tk.filedialog.askdirectory()
 		self.strat_str.configure(text = file)
 		self.strats = file
@@ -83,6 +96,7 @@ class CfgWindow(ctk.CTkToplevel):
 		return name
 
 	def close(self):
-		# Saves path to json and closes the popup
+		"""Saves path to JSON and closes the config window
+		"""
 		self.config.update_paths(self.path, self.strats)
 		self.destroy()
