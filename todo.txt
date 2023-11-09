@@ -3,7 +3,7 @@
 - Build event handler mt5 launch (update forecast, etc) - handler will be middle checkpoint for ui and other ops
 - Create Risk management module 
 - Create GBPUSD strategy in a separate tab 
-- Move other UI elements to different class (such as tabs, sidebars, etc)
+
 - Reformat UI using pack/place(relx, rely, relwidth, relheight)
 
 - Build function for closing all open orders (strategy specific)
@@ -29,6 +29,7 @@
 - Create another script to handle operations for trading (because ui is very slow), use threading
 - New way of creating strat class instances (try using inheritance)
 - Create Signals class using MA forecasting
+- Move other UI elements to different class (such as tabs, sidebars, etc)
 '''
 
 
