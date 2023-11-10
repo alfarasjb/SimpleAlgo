@@ -112,5 +112,4 @@ class Signal:
         self.symbol = symbol 
         self.date = date 
         self.signal = signal 
-
       
