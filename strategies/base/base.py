@@ -24,8 +24,11 @@ class Base:
 	Methods
 	-------
 	log() - Logging method
+
 	toggle_strat_state() - Toggles strategy (enabled or disabled)
+
 	request_data() - Requests data from MT5 Class
+
 	get_next_interval() - Get next interval based on timeframe
 	"""
 
@@ -82,7 +85,7 @@ class Base:
 				self.log('STRATEGY DISABLED')
 
 				self.exit_event.set()
-				self.running_thread.join()
+				#self.running_thread.join()
 				self.threads.clear()
 				self.log('THREAD CLEARED')
 
@@ -182,3 +185,18 @@ class Base:
 		server_time = server_time.replace(minute = server_min, second = 0, microsecond = 0)
 
 		return next_interval, ts, server_time
+	
+
+	def start_thread(self, loop_function: callable):
+		"""Starts algo thread
+
+		Parameters
+		---------
+		loop_function: callable
+			Thread target function, algo main loop function		
+		"""
+		self.log('STARTING THREAD')
+		self.running_thread = Thread(target = loop_function, daemon = True)
+		self.running_thread.start()
+		self.threads.append(self.running_thread)
+		

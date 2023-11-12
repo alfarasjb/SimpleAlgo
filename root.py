@@ -36,8 +36,7 @@ class App(ctk.CTk):
 		self.mt5_py = event.mt5_py
 		self.config = config.cfg
 		self.init_strat = strategies.Init_Strat(self.config._strategies)
-		self.fcast = signals.Forecast()
-		self.generic = signals.Signals()
+		self.signals_handler = event.Signals_Handler()
 		self.manual_trading = None
 		self.strats_tab = None
 		
@@ -50,11 +49,8 @@ class App(ctk.CTk):
 		#self._pending_order_params = []
 		#self._market_order_params = []
 		self._active_strats_switch = []
-		self._signals_list = []
-		self._patterns_list = []
 
 		self._strat_names = self.init_strat.filenames # list of strat
-		self._strat_objects = self.init_strat.class_object
 
 
 		self._loginWindow = None # Login window
@@ -66,8 +62,6 @@ class App(ctk.CTk):
 		# Dynamic Elements
 		self._symbols_list = self.mt5_py.symbols
 		#self.symbols_dropdown = None
-
-		self.patterns = None
 
 		# Main window configuration
 		self.title(self.config._root_title)
@@ -220,17 +214,8 @@ class App(ctk.CTk):
 			
 		elif name == 'Signals':
 			# Signals Tab
-			if len(self._signals_list) == 0:
-				signals = self.fcast.read_data()
-				
-				self.signals_tab = gui.Signals_Tab(self.tabview.tab('Signals'), signals, self.patterns)
-				self._signals_list = self.signals_tab._signals_elements
-				self._patterns_list = self.signals_tab._patterns_elements
-			else: 
-				self.signals_tab.refresh(patterns = self.patterns)
-				#signals = self.fcast.read_data()
-				#self.gui = gui.Signals_Tab(self.tabview.tab('Signals'), signals, self.patterns)
-
+			self.signals_handler.update_signals()
+			self.signals_handler.create_signals_tab(self.tabview.tab('Signals'))
 		
 		# BUTTON COMMANDS
 
@@ -238,17 +223,13 @@ class App(ctk.CTk):
 	# General Helper function for updating left sidebar (Can be called on change account)
 		[self._sidebar_elements[i][1].configure(text = info_data) for i, info_data in enumerate(data)]
 
-
 	def launch_mt5(self):
 		# Launch MT5
 		if self.mt5_py.launch_mt5():
 			name, num, brkr, bal = self.mt5_py.fetch_account_info()
 			self.update_account_data((num, brkr, bal)) # Updates account data on left sidebar
 			self._symbols_list = self.mt5_py.fetch_symbols()
-			self.fcast.update()
-			self.patterns = self.generic.get_data()
 			self.tab_func() # Updates table elements on MT5 Launch
-			
 			
 
 	def change_account_popup(self):

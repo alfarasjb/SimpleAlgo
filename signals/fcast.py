@@ -19,13 +19,13 @@ class Forecast:
     read_data() - Reads data from csv to display on UI
     """
     
-    def __init__(self):
+    def __init__(self, symbols = None):
         self.mt5_py = MT5_Py()
         
         self._samples = 10
         self._signals = []
 
-        self._symbols = ['EURUSD','AUDUSD','GBPUSD','USDCHF','USDCAD','USDJPY']
+        self._symbols = symbols if symbols is not None else ['EURUSD','AUDUSD','GBPUSD','USDCHF','USDCAD','USDJPY']
 
     def update(self):
         """Updates signals 
@@ -65,9 +65,9 @@ class Forecast:
         start_date = (last_date + pd.Timedelta(days = 1)).to_pydatetime()
 
         fetch_start_date = start_date + pd.Timedelta(weeks = 1) - pd.Timedelta(days = 1)
-
-        if self.mt5_py.check_connection_status() == 'Not Connected':
-            self.mt5_py.launch_mt5()
+        if not self.mt5_py.is_connected():
+            return None
+        
         data = self.mt5_py.request_price_data(timeframe = 'w1', symbol = symbol,
                     request_type = 'rates', start_date = start_date, end_date = dt.today())
 
