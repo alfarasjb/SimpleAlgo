@@ -30,8 +30,8 @@ class DB_Handler():
 	def __init__(self):
 		database = 'pyalgo' # put this in a different file
 		password = '123456789' # put this in a different file
-		self.engine = db.create_engine(f'mysql://root:{password}@localhost:3306/{database}') # if database is sql (settings)
-		self.connection = self.engine.connect() # if database is sql
+		#self.engine = db.create_engine(f'mysql://root:{password}@localhost:3306/{database}') # if database is sql (settings)
+		#self.connection = self.engine.connect() # if database is sql
 
 	def fetch_sql(self, table: str) -> pd.DataFrame:
 		# Fetch is called everytime trade handler wants to store to db (execution or closed)

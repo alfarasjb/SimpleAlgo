@@ -13,10 +13,9 @@ class Signals_Tab:
     refresh() - recalculates signals
     empty() - returns if list is empty
     """
-    def __init__(self, master, data, patterns = None):
+    def __init__(self, master, data = None):
         self.master = master # tabview name 
         self.data = data # returned data from fcast
-        self.patterns = patterns
 
         self._signals_elements = []
         self._patterns_elements = []
@@ -46,8 +45,8 @@ class Signals_Tab:
         self.content_frame = ctk.CTkFrame(self.signals_frame)
         self.content_frame.place(relx = 0.02, rely = 0.15, relwidth = 0.96, relheight = 0.8)
 
-        self.build_signals_row()
-        self.build_patterns_row()
+        #self.build_signals_row()
+        #self.build_patterns_row()
 
     def build_signals_row(self):
         """Builds a signal row for individual symbols
@@ -58,54 +57,24 @@ class Signals_Tab:
             self.symbol_row = ctk.CTkLabel(master, text = d.symbol)
             self.date_row = ctk.CTkLabel(master, text = d.date)
             self.signal_row = ctk.CTkLabel(master, text = d.signal)
+            self.pattern_row = ctk.CTkLabel(master, text = d.pattern)
+            self.bias_row = ctk.CTkLabel(master, text = d.bias)
+            self.open_row = ctk.CTkLabel(master, text = d.open)
+            self.last_updated_row = ctk.CTkLabel(master, text = d.last_updated)
+
 
             self.symbol_row.place(x = 30, y = y)
             self.date_row.place(x = 100, y = y)
             self.signal_row.place(x = 200, y = y)
-
-            self._signals_elements.append([self.symbol_row, self.date_row, self.signal_row])
-    
-    def build_patterns_row(self):
-        """Builds a pattern row for individual symbols
-        """
-        if self.patterns is None:
-            return
-        
-        master = self.content_frame 
-        for i, p in enumerate(self.patterns):
-            y = (i * 30) + 10
-            self.pattern_row = ctk.CTkLabel(master, text = p.pattern)
-            self.bias_row = ctk.CTkLabel(master, text = p.bias)
-            self.open_row = ctk.CTkLabel(master, text = p.open)
-            self.last_updated_row = ctk.CTkLabel(master, text = p.last_updated)
-
             self.pattern_row.place(x = 285, y = y)
             self.bias_row.place(x = 370, y = y)
             self.open_row.place(x = 430, y = y)
             self.last_updated_row.place(x = 520, y = y)
-            self._patterns_elements.append([self.pattern_row, self.bias_row, self.open_row, self.last_updated_row])
+            
 
+            self._signals_elements.append([self.symbol_row, self.date_row, self.signal_row, 
+                self.pattern_row, self.bias_row, self.open_row, self.last_updated_row])
     
-
-    def refresh(self, signals = None, patterns = None):
-        """Recalculates signals
-        """
-        if signals is not None:
-            self.signals = signals 
-            self.build_signals_row()
-
-        if patterns is not None:
-            self.patterns = patterns 
-            for i, row in enumerate(self._patterns_elements):
-                row[0] = self.patterns[i].pattern
-                row[1] = self.patterns[i].bias
-                row[2] = self.patterns[i].open
-                row[3] = self.patterns[i].last_updated
-                
-                    
-            #self.build_patterns_row()
-
-
     def empty(self):
         """Checks if list is empty
 
@@ -114,3 +83,9 @@ class Signals_Tab:
         bool - True if list is not empty
         """
         return len(self._signals_elements) == 0
+    
+
+    def delete_all_rows(self):
+        for e in self._signals_elements:
+            for i in e:
+                i.destroy()

@@ -39,8 +39,9 @@ class MT5_Py():
 		#self.path = 'C:/Program Files/MetaTrader 5 IC Markets (SC)/terminal64.exe'
 		self.pl_hist = []
 		self.symbols = self.fetch_symbols()
-		self.connection_status =  'Disconnected'
+		#self.connection_status =  'Disconnected'
 		self._algo_trading_enabled = False
+		self.connected = self.is_connected()
 
 		
 
@@ -62,9 +63,10 @@ class MT5_Py():
 		else:
 			_log.info('MT5 Initialized Successfully.')
 			self.fetch_account_info()
-			self.check_connection_status()
+			#self.check_connection_status()
 			return True
 	
+	'''
 	def check_connection_status(self):
 		"""Checks MT5 connection status
 
@@ -78,6 +80,19 @@ class MT5_Py():
 			return 'Not Connected'
 		self.connection_status = 'Connected'
 		return 'Connected'
+	'''
+	def is_connected(self):
+		"""
+		Checks MT5 connection status
+
+		Returns
+		-------
+		bool
+			MT5 connection status
+		"""
+		if mt5.account_info() is None:
+			return False
+		return True
 
 
 	def fetch_account_info(self):
@@ -101,7 +116,7 @@ class MT5_Py():
 		acct_bal = acct_info['balance']
 		if acct_info is not None:
 			_log.info('%s : Connected To MT5 Account %s, Server %s', self.__source, acct_num, acct_server)
-			self.connection_status = 'Connected'
+			self.connected = True
 		return acct_name, acct_num, acct_server, acct_bal
 
 	def fetch_order_history(self):
