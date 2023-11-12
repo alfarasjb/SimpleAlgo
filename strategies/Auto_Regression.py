@@ -6,7 +6,7 @@ import pause
 import templates
 class Auto_Regression(Base):
 
-	def __init__(self, symbol: str, timeframe: str, enabled: bool = False):
+	def __init__(self, symbol: str, timeframe: str, enabled: bool = False, volume: float = 0.01):
 		super().__init__('Auto_Regression', timeframe, symbol, enabled)
 
 	def loop(self):

@@ -151,7 +151,7 @@ class Init_Strat():
 		return res, obj
 	'''
 	
-	def add_strat_to_table(self, obj, timeframe, symbol, key, state = 0):
+	def add_strat_to_table(self, obj, timeframe, symbol, volume, key, state = 0):
 		"""Adds selected strategy to strategies table
 
 		Parameters
@@ -176,14 +176,14 @@ class Init_Strat():
 		None -> if strategy is already in table
 		"""
 		for strat in self._strategies_in_table:
-			data = (strat[0].name, strat[0].timeframe, strat[0].symbol)
-			incoming = (key, timeframe, symbol)
+			data = (strat[0].name, strat[0].timeframe, strat[0].symbol, strat[0].volume)
+			incoming = (key, timeframe, symbol, volume)
 
 			if incoming == data:
 				_log.info('Cannot add strategy to table. Duplicate found.')
 				return None
 
-		strategy = obj(timeframe = timeframe, symbol = symbol)
+		strategy = obj(timeframe = timeframe, symbol = symbol, volume = volume)
 		data = [strategy, state]
 		self._strategies_in_table.append(data)
 		_log.info(f'Strategies Table Updated to {len(self._strategies_in_table)}')
