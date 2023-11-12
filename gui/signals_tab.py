@@ -13,7 +13,7 @@ class Signals_Tab:
     refresh() - recalculates signals
     empty() - returns if list is empty
     """
-    def __init__(self, master, data, patterns = None):
+    def __init__(self, master, data = None, patterns = None, object = None):
         self.master = master # tabview name 
         self.data = data # returned data from fcast
         self.patterns = patterns
@@ -84,7 +84,6 @@ class Signals_Tab:
             self.open_row.place(x = 430, y = y)
             self.last_updated_row.place(x = 520, y = y)
             self._patterns_elements.append([self.pattern_row, self.bias_row, self.open_row, self.last_updated_row])
-
     
 
     def refresh(self, signals = None, patterns = None):
@@ -114,3 +113,9 @@ class Signals_Tab:
         bool - True if list is not empty
         """
         return len(self._signals_elements) == 0
+    
+
+    ### NEW METHODS: USING SIGNALS HANDLER
+    def build_row(self):
+        # parse signals row object to create new row
+        pass

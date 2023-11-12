@@ -18,21 +18,22 @@ patterns = {
 class Signals:
 
 
-	def __init__(self):
+	def __init__(self, symbols: list = []):
 
 		self.mt5 = event.mt5_py
 		self.patterns = []
+		self._symbols = symbols if len(symbols) != 0 else ['EURUSD','AUDUSD','GBPUSD','USDCHF','USDCAD','USDJPY']
+        
 
 	def update(self):
 		pass
 
 	def get_data(self):
-		symbols =  ['EURUSD','AUDUSD','GBPUSD','USDCHF','USDCAD','USDJPY']
 
 		if self.mt5.check_connection_status() == 'Not Connected':
-			self.mt5.launch_mt5()
+			return
 		
-		for symbol in symbols:
+		for symbol in self._symbols:
 			data = self.mt5.request_price_data(timeframe = 'h4', symbol = symbol, 
 				      request_type = 'pos', start_index = 1, num_bars = 4)
 

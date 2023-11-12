@@ -19,16 +19,16 @@ class Forecast:
     read_data() - Reads data from csv to display on UI
     """
     
-    def __init__(self):
+    def __init__(self, symbols: list = []):
         self.mt5_py = MT5_Py()
         
         self._samples = 10
         self._signals = []
-
-        self._symbols = ['EURUSD','AUDUSD','GBPUSD','USDCHF','USDCAD','USDJPY']
+        self._symbols = symbols if len(symbols) != 0 else ['EURUSD','AUDUSD','GBPUSD','USDCHF','USDCAD','USDJPY']
+        #self._symbols = ['EURUSD','AUDUSD','GBPUSD','USDCHF','USDCAD','USDJPY']
 
     def update(self):
-        """Updates signals 
+        """Updates signals CSV files
         """
         _log.info('Updating Signals')
         for sym in self._symbols:

@@ -36,6 +36,7 @@ class App(ctk.CTk):
 		self.mt5_py = event.mt5_py
 		self.config = config.cfg
 		self.init_strat = strategies.Init_Strat(self.config._strategies)
+		self.signals_handler = event.Signals_Handler()
 		self.fcast = signals.Forecast()
 		self.generic = signals.Signals()
 		self.manual_trading = None
@@ -226,6 +227,10 @@ class App(ctk.CTk):
 				self.signals_tab = gui.Signals_Tab(self.tabview.tab('Signals'), signals, self.patterns)
 				self._signals_list = self.signals_tab._signals_elements
 				self._patterns_list = self.signals_tab._patterns_elements
+
+				### USING SIGNALS HANDLER
+				signals = self.signals_handler.get_weekly()
+				self.signals_handler.create_signals_tab(self.tabview.tab('Signals'))
 			else: 
 				self.signals_tab.refresh(patterns = self.patterns)
 				#signals = self.fcast.read_data()
@@ -245,7 +250,8 @@ class App(ctk.CTk):
 			name, num, brkr, bal = self.mt5_py.fetch_account_info()
 			self.update_account_data((num, brkr, bal)) # Updates account data on left sidebar
 			self._symbols_list = self.mt5_py.fetch_symbols()
-			self.fcast.update()
+			#self.fcast.update()
+			self.signals_handler.update_weekly() # same as fcast.update
 			self.patterns = self.generic.get_data()
 			self.tab_func() # Updates table elements on MT5 Launch
 			
