@@ -82,17 +82,25 @@ class Manual_Trading:
         """
         # Processing order form
 
-        # Creates a list containing trade info to send to trade handler
-        order_params = ['Manual', self.symbols_dropdown.get(), order_type, 'Pending', 'Pending']
-        
+        order_params = [] # List of order parameters [price, sl, tp, volume]
         for order in self._pending_order_params:
             price = float(order.get()) if order.get() != '' else 0
             order_params.append(price)
-        order_params.append(0.01)
+        
+        
+        order_package = templates.Trade_Package(
+            src = 'Manual Trading',
+            symbol = self.symbols_dropdown.get(),
+            price = order_params[0],
+            sl = order_params[1],
+            tp = order_params[2],
+            comment = 'Pending',
+            order_type = order_type,
+            volume = order_params[3],
+            deal = 'Pending',
+            magic = 111234
+        )
 
-        # Process order send
-        pending_order = templates.Trade_Package(order_params) # repackaging
-        print(order_params)
 
         '''
         Trade handler class, explore possibility of creating class instance 
@@ -101,7 +109,7 @@ class Manual_Trading:
         trade_handler = event.trade_handler
 
         # Sends packaged order parameters to MT5 event handler
-        trade_handler.send_order(pending_order) 
+        trade_handler.send_order(order_package) 
                 
     def update_symbols_dropdown(self, symbols: list):
         """Updates symbols dropdown menu
