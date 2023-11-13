@@ -48,6 +48,8 @@ class Base:
 		self.mt5 = event.mt5_py
 		self.divisor = tf_converter[self.timeframe]
 
+		self.magic = 0
+
 	def log(self, message: str):
 		"""Logging Method
 
@@ -58,7 +60,7 @@ class Base:
 		"""
 		# LOGGING
 		assert type(message) == str, 'Invalid Message Type'
-		_log.info('STRAT: %s | SYMBOL: %s | TIMEFRAME: %s | %s', self.name, self.symbol, self.timeframe, message)
+		_log.info('ALPHA: %s | SYMBOL: %s | TIMEFRAME: %s | %s', self.name, self.symbol, self.timeframe, message)
 		
 	def toggle_strat_state(self, value: bool):
 		"""Enables/disables trading on this strategy
@@ -92,7 +94,7 @@ class Base:
 		else:
 			raise ValueError('Invalid Switch Value')
 
-	def request_data(self, request_type: str = 'pos', start_index: int = 0, num_bars: int = 1, start_date: str = '', end_date: str = ''):
+	def request_data(self, tf: str = '', request_type: str = 'pos', start_index: int = 0, num_bars: int = 1, start_date: str = '', end_date: str = ''):
 		"""Requests price data from MT5_Py Class
 
 		Parameters
@@ -134,9 +136,9 @@ class Base:
 		-------
 		list -> list of received data or None
 		"""
-
-		ohlc_list = self.mt5.request_price_data(timeframe = self.timeframe, 
-			symbol = self.symbol, request_type = request_type, start_date = start_date, 
+		timeframe = self.timeframe if tf is '' else tf
+		ohlc_list = self.mt5.request_price_data(timeframe = timeframe, 
+			symbol = self.symbol, request_type = request_type, start_date = start_date, end_date = end_date,
 			start_index = start_index, num_bars = num_bars)
 		if ohlc_list is None:
 			return None

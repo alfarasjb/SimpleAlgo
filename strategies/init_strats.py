@@ -3,7 +3,7 @@ import sys
 import os
 from threading import Thread
 import logging
-
+import event
 ## CLASS FOR IMPORTING PYTHON STRATEGIES ## 
 
 
@@ -18,10 +18,15 @@ class Init_Strat():
 	Methods
 	-------
 	get_strats() - Main function call for building list of available strategies in directory
+	
 	check_class() - Searches line by line for classes in file
+	
 	load_module() - Helper function for loading module for valid strategies
+	
 	add_strat_to_table() - Adds selected strategy to strategies table
+	
 	remove_strat_from_table() - Removes selected strategy from strategies table
+	
 	running_strategy() - Triggers strategy thread and monitors running strategies
 	"""
 	def __init__(self, path = r'.'):
@@ -122,35 +127,6 @@ class Init_Strat():
 		k = getattr(module, class_name)
 		return k
 	
-	'''
-	def get_strats_list(self):
-        # THIS IS A WORKING METHOD
-		this_file = os.path.basename(__file__) # This file name
-		res = [] 
-		obj = {}
-
-		for path in os.listdir(self.dir_path):
-    		
-			raw_path = self.dir_path + '/' + path
-			if os.path.isfile(os.path.join(self.dir_path, path)) \
-			and (path != this_file) \
-			and ('.py' in path)\
-			and ('__init__' not in path): 
-				file = path.replace('.py', '')
-				spec = importlib.util.find_spec(f'strategies.{file}')
-				module = importlib.util.module_from_spec(spec)
-				sys.modules[file] = module 
-				spec.loader.exec_module(module)
-				k = getattr(module, file)
-				#instance = k()
-				#strat.append(instance)
-				
-				res.append(path)
-				obj[file] = k
-
-		return res, obj
-	'''
-	
 	def add_strat_to_table(self, obj, timeframe, symbol, volume, key, state = 0):
 		"""Adds selected strategy to strategies table
 
@@ -198,6 +174,7 @@ class Init_Strat():
 
 		assert type(obj) == list, f'Invalid Object Type. Received Type: {type(obj)}'
 		assert len(obj) == 2, f'Invalid Object Length. Received Length: {len(obj)}'
+		event.trade_handler.remove_magic(obj[0].magic, obj[0].name)
 		self._strategies_in_table.remove(obj)
 
 	def running_strategy(self, index, switch_state):
@@ -213,7 +190,7 @@ class Init_Strat():
 		"""
 		assert type(index) == int, 'Invalid Index Type'
 		assert type(switch_state) == int, 'Invalid Switch Value Type'
-
+		
 		strategy = self._strategies_in_table[index][0]
 		#print('STRATEGY TO UPDATE: ', strategy.name, strategy.timeframe, strategy.symbol)
 

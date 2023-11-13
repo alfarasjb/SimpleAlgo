@@ -91,7 +91,6 @@ class Strats_Tab:
         """Adds strategy in directory to active strategies trading pool
         """
 
-        print('add strat')
 
         key = self.strats_dropdown.get() # name of the strategy
         obj = self.strat_objects[key] if key in list(self.strat_objects.keys()) else None

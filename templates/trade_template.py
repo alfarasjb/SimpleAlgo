@@ -4,23 +4,73 @@
 class Trade_Package():
 	"""
 	Trade_Package - Holds a trade template containing required trade information.
+	
+	...
+	Attributes
+	----------
+	src: str
+		Source of order: Manual Trading or Alpha
+		Used for logging
+
+	symbol: str
+		Order Symbol
+		MT5 Request Key: symbol
+
+	price: float
+		Order Open Price (0 for market order)
+		MT5 Request Key: price
+
+	sl: float
+		Order Stop Loss (0 for no stop loss)
+		MT5 Request Key: tp
+		
+	tp: float
+		Order Take Profit (0 for no take profit)
+		MT5 Request Key: tp
+
+	comment: str
+		Comment: Source Algo or Manual Trading
+		MT5 Request Key: comment
+		
+	order_type: str
+		Order Type: (Buy Limit, Sell Limit, Market Buy, Market Sell)
+		MT5 Request Key: type
+
+	volume: float
+		Trade Volume
+		MT5 Request Key: volume
+
+	deal: str
+		Deal Type: (Pending, Market)
+		MT5 Request Key: action
+
+	magic: int
+		Magic Number
+		MT5 Request Key: magic
 	"""
 
 
-	def __init__(self, attribs: list):
-		# pass in a list of len = 5
-		self.__order_keys = ['Source', 'Symbol', 'Order Type', 'Deal', 'Comment', 'Price', 'SL', 'TP', 'Volume']
-		self.__order_values = attribs
-
-		self.__order_dict = {k:v for k, v in zip(self.__order_keys, self.__order_values)}
-
-		# Attributes to access by trade handler
-		self.order_source = self.__order_dict['Source'] # Source of order, manual trading / strategy
-		self.order_symbol = self.__order_dict['Symbol'] # Symbol to trade
-		self.order_price = self.__order_dict['Price'] # Order Open Price (0 for market order)
-		self.order_sl = self.__order_dict['SL'] # Order Sl (0 for no sl)
-		self.order_tp = self.__order_dict['TP'] # Order TP (0 for no TP)
-		self.order_comment = self.__order_dict['Comment'] # Comment (Source algo / manual trading)
-		self.order_type = self.__order_dict['Order Type'] # Order Type (Buy, Sell, Buy Limit, Sell Limit)
-		self.order_volume = self.__order_dict['Volume'] # Order Volume
-		self.order_deal = self.__order_dict['Deal'] # Order Deal
+	def __init__(self, 
+	      src: str,
+		  symbol: str,
+		  price: float,
+		  sl: float,
+		  tp: float,
+		  comment: str,
+		  order_type: str,
+		  volume: float, 
+		  deal: str,
+		  magic: int, 
+		  attribs: list = []):
+		
+		### REVISION 
+		self.order_source = src 
+		self.order_symbol = symbol 
+		self.order_price = price 
+		self.order_sl = sl 
+		self.order_tp = tp 
+		self.order_comment = comment 
+		self.order_type = order_type 
+		self.order_volume = volume 
+		self.order_deal = deal 
+		self.order_magic = magic
