@@ -42,7 +42,7 @@ tf_converter = {
 class Auto_Regression_Original:
 
 
-	def __init__(self, enabled: bool = False, timeframe: str = 'm5', symbol: str = 'BTCUSD'):
+	def __init__(self, enabled: bool = False, timeframe: str = 'm5', symbol: str = 'BTCUSD', volume: float = 0.01):
 		# Required Attributes for strategy template
 		self.name = 'Auto_Regression'
 		self.enabled = enabled

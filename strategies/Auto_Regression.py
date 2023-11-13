@@ -6,9 +6,11 @@ import pause
 import templates
 class Auto_Regression(Base):
 
-	def __init__(self, symbol: str, timeframe: str, enabled: bool = False):
+	def __init__(self, symbol: str, timeframe: str, enabled: bool = False, volume: float = 0.01):
 		super().__init__('Auto_Regression', timeframe, symbol, enabled)
-
+		self.volume = volume
+		self.magic = self.trade_handler.register_magic('Auto_Regression')
+		
 	def loop(self):
 
 		while self.enabled:
@@ -42,17 +44,35 @@ class Auto_Regression(Base):
 
 		if close_price > open_price:
 			self.log('LONG')
-			order_form = [self.name, self.symbol, 'Market Buy', 'Market', comment, 0, 0.0, 0.0, 0.01]
-			
-			order_package = templates.Trade_Package(order_form)
-		
+			order_package = templates.Trade_Package(
+				src = self.name,
+				symbol = self.symbol,
+				price = 0,
+				sl = 0.0,
+				tp = 0.0, 
+				comment = comment,
+				order_type = 'Market Buy',
+				volume = self.volume,
+				magic = self.magic,
+				deal = 'Market'
+			)
 			self.trade_handler.close_pos(self.symbol)
 			self.trade_handler.send_order(order_package)
 
 		elif close_price <= open_price:
 			self.log('SHORT')
-			order_form = [self.name, self.symbol, 'Market Sell', 'Market', comment, 0, 0.0, 0.0, 0.01]
-			order_package = templates.Trade_Package(order_form)
+			order_package = templates.Trade_Package(
+				src = self.name,
+				symbol = self.symbol,
+				price = 0,
+				sl = 0.0,
+				tp = 0.0, 
+				comment = comment,
+				order_type = 'Market Sell',
+				volume = self.volume,
+				magic = self.magic,
+				deal = 'Market'
+			)
 			self.trade_handler.close_pos(self.symbol)
 			self.trade_handler.send_order(order_package)
 

@@ -214,7 +214,6 @@ class App(ctk.CTk):
 			
 		elif name == 'Signals':
 			# Signals Tab
-			self.signals_handler.update_signals()
 			self.signals_handler.create_signals_tab(self.tabview.tab('Signals'))
 		
 		# BUTTON COMMANDS
@@ -229,7 +228,9 @@ class App(ctk.CTk):
 			name, num, brkr, bal = self.mt5_py.fetch_account_info()
 			self.update_account_data((num, brkr, bal)) # Updates account data on left sidebar
 			self._symbols_list = self.mt5_py.fetch_symbols()
+
 			self.tab_func() # Updates table elements on MT5 Launch
+			self.signals_handler.update_signals()
 			
 
 	def change_account_popup(self):

@@ -2,7 +2,7 @@
 import MetaTrader5 as mt5
 import logging
 from datetime import datetime as dt
-
+import numpy as np
 # Local Imports
 
 import templates
@@ -50,6 +50,7 @@ class Trade_Handler():
 		#self.db = event.db # temporarily disabled
 
 		self.__source = 'TRADE HANDLER'
+		self.active_magic = []
 
 	def send_order(self, trade: templates.Trade_Package):
 		"""Method for sending order via MT5_Py
@@ -115,13 +116,13 @@ class Trade_Handler():
 		request = {
 		    'action' : order_action,
 		    'symbol' : symbol,
-		    'volume' : 0.01,
+		    'volume' : trade.order_volume,
 		    'type' : order_type,
 		    'price' : float(price),
 		    'sl' : float(trade.order_sl),
 		    'tp' : float(trade.order_tp),
 		    'deviation' : 30, #slippage
-		    'magic' : 234564,
+		    'magic' : trade.order_magic,
 		    'comment' : trade.order_comment,
 		    'type_time' : mt5.ORDER_TIME_GTC,
 		    'type_filling' : mt5.ORDER_FILLING_IOC
@@ -297,3 +298,21 @@ class Trade_Handler():
 		#sql = self.db.store_sql('execution', items)
 		
 		return True
+	
+	def register_magic(self, alpha):
+		# checks pool for registered magic number
+		# generate magic number
+		while True:
+			magic = np.random.randint(100000, 999999, 1)
+			if magic not in self.active_magic:
+				self.active_magic.append(magic)
+				_log.info('%s : Registered Magic Number %i for %s', self.__source, magic, alpha)
+				return magic[0]
+			 
+
+	def remove_magic(self, magic, alpha):
+		self.active_magic.remove(magic)
+		_log.info('%s : Removed Magic Number %i for %s', self.__source, magic, alpha)
+			
+		# call this when strategy is removed from table
+	

@@ -66,6 +66,14 @@ class Signals_Handler:
         self.signals_elements = self.signals_tab._signals_elements
 
 
+    def get_symbol_data(self, sym):
+        # use this for gu fill finder
+        for o in self.signals_objects:
+            if o.symbol != sym:
+                continue 
+            return o 
+
+
 class Signals_Row_Object:
 
 

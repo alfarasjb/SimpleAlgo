@@ -8,7 +8,7 @@ import templates
 class Equities_Stat_Arb(Base):
     
 
-    def __init__(self, symbol: str, timeframe: str, enabled: bool = False):
+    def __init__(self, symbol: str, timeframe: str, enabled: bool = False, volume: float = 0.01):
         super().__init__('Equities_Stat_Arb', timeframe, symbol, enabled)
     
     def loop(self):
