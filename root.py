@@ -87,7 +87,8 @@ class App(ctk.CTk):
 		#tab_names = ['Open Positions', 'History', 'Strategies', 
 		#'Correlation Matrix', 'Signals', 'Manual Trading']
 
-		tab_names = ['Strategies', 'Manual Trading', 'Open Positions', 'History', 'Signals']
+		#tab_names = ['Strategies', 'Manual Trading', 'Open Positions', 'History', 'Signals']
+		tab_names = ['Strategies', 'Manual Trading', 'Signals', 'Equities']
 
 		# Builds Main Tabview ; command builds elements per tab
 		self.tabview = ctk.CTkTabview(self, command = self.tab_func)
@@ -216,6 +217,9 @@ class App(ctk.CTk):
 			# Signals Tab
 			self.signals_handler.create_signals_tab(self.tabview.tab('Signals'))
 		
+		elif name == 'Equities':
+			# Equities tab goes here
+			pass
 		# BUTTON COMMANDS
 
 	def update_account_data(self, data):
