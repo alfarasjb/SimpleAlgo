@@ -59,10 +59,15 @@ class Base:
 		message: str
 			Message to print on logs
 		"""
+		
+
 		# LOGGING
 		assert type(message) == str, 'Invalid Message Type'
-		_log.info('ALPHA: %s | SYMBOL: %s | TIMEFRAME: %s | %s', self.name, self.symbol, self.timeframe, message)
-		
+		try:
+			_log.info('Server: %s | ALPHA: %s | SYMBOL: %s | TIMEFRAME: %s | %s', self.get_last_server_timestamp().strftime('%H:%M'), self.name, self.symbol, self.timeframe, message)
+		except ConnectionError:
+			_log.info('NOT CONNECTED TO MT5')
+
 	def toggle_strat_state(self, value: bool):
 		"""Enables/disables trading on this strategy
 
@@ -137,7 +142,7 @@ class Base:
 		-------
 		list -> list of received data or None
 		"""
-		timeframe = self.timeframe if tf is '' else tf
+		timeframe = self.timeframe if tf == '' else tf
 		ohlc_list = self.mt5.request_price_data(timeframe = timeframe, 
 			symbol = self.symbol, request_type = request_type, start_date = start_date, end_date = end_date,
 			start_index = start_index, num_bars = num_bars)
@@ -190,7 +195,8 @@ class Base:
 			server_time = server_time.replace(minute = min, second = 0, microsecond = 0)
 		else:	
 			print('fetching server time from terminal')
-			last_server_datetime = dt.fromtimestamp(mt5.symbol_info(self.symbol)._asdict()['time'])
+			timezone = pytz.timezone('Etc/UTC')
+			last_server_datetime = dt.fromtimestamp(mt5.symbol_info(self.symbol)._asdict()['time'], tz = timezone)
 			svr_hours = last_server_datetime.hour - 8
 
 			if svr_hours < 0:
@@ -198,7 +204,7 @@ class Base:
 			if min == 0: 
 				svr_hours += 1
 			
-			last_server_time = last_server_datetime.replace(hour = svr_hours, second = 0, microsecond = 0)
+			last_server_time = last_server_datetime.replace(hour = last_server_datetime.hour, second = 0, microsecond = 0)
 			server_time = last_server_time.replace(minute = min)
 		return next_interval, ts, server_time
 	
@@ -221,11 +227,8 @@ class Base:
 		if not self.mt5.is_connected():
 			raise ConnectionError
 		
-		last_timestamp = dt.fromtimestamp(mt5.symbol_info(self.symbol)._asdict()['time'])
-		hours, mins = last_timestamp.hour - 8, last_timestamp.minute 
-
-		if hours < 0:
-			hours += 24
-		last_server_time = last_timestamp.replace(hour = hours, minute = dt.now().minute, second = 0, microsecond = 0)
+		timezone = pytz.timezone('Etc/UTC')
+		last_timestamp = dt.fromtimestamp(mt5.symbol_info(self.symbol)._asdict()['time'], tz = timezone)
+		last_server_time = dt.now().replace(hour = last_timestamp.hour, second = 0, microsecond = 0)
+	
 		return last_server_time
-		
