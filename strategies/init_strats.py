@@ -55,7 +55,7 @@ class Init_Strat():
     	#objective: return list of files, and strategy objects
 		this_file = os.path.basename(__file__)
 
-		excluded_files = [this_file, '__init__.py']
+		excluded_files = [this_file, '__init__.py', 'queue_object.py']
 		dir_files = []
 		[dir_files.append(d) for d in os.listdir('.\strategies') if d.endswith('.py') and d not in excluded_files]
 
