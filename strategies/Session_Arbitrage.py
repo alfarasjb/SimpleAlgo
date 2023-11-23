@@ -35,7 +35,7 @@ class Session_Arbitrage(Base):
         self.trade_queue = []
 
         
-
+        self.trade_handler.register_magic(self.name, self.magic)
         self.queue_handler = Queue_Handler() # instance of queue handler
         self.combined_dfs = None
         self.scan()
@@ -167,7 +167,9 @@ class Session_Arbitrage(Base):
                 #if (last_server_time.hour == next_trade_hour) and (last_server_time.minute == next_trade_min):
                     # execute trade
                     #signals_to_process = len(next_sig)
+                    print('MATCH')
                     for s in next_batch:
+                        print(s.symbol)
                         # s is a queue object
                         t = Thread(target = self.process, args = [s])
                         #t = Thread(target = self.process, args = [next_sig.iloc[s]])
@@ -183,6 +185,10 @@ class Session_Arbitrage(Base):
             # next trade interval: used as reference for trade execution
             # next batch trades to execute in next cycle
             next_trade_interval, next_batch, ts = self.parse_data('loop')
+
+            if last_server_time > next_trade_interval:
+                    self.log('Updating Queue')
+                    self.queue_handler.update_queue(last_server_time)
 
     
 
