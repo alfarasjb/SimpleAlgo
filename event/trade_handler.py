@@ -302,9 +302,14 @@ class Trade_Handler():
 		
 		return True
 	
-	def register_magic(self, alpha):
+	def register_magic(self, alpha, magic_number:int = 0):
 		# checks pool for registered magic number
 		# generate magic number
+		if magic_number != 0:
+			self.active_magic.append(magic_number)
+			_log.info('%s: Registered Magic Number %i for %s', self.__source, magic_number, alpha)
+			return magic_number
+
 		while True:
 			magic = np.random.randint(100000, 999999, 1)
 			if magic not in self.active_magic:
