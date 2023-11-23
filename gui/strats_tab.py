@@ -95,20 +95,20 @@ class Strats_Tab:
         key = self.strats_dropdown.get() # name of the strategy
         obj = self.strat_objects[key] if key in list(self.strat_objects.keys()) else None
 
-        try:
-            if obj != None:
-                strats_in_table = len(self.init_strat._strategies_in_table)
-                timeframe = self.tf_dropdown.get()
-                symbol = self.target_symbol.get()
-                volume = float(self.volume_entry.get())
-
-                self.init_strat.add_strat_to_table(obj, timeframe, symbol, volume, key)
-                self.build_strat_row(key, timeframe, symbol, volume, strats_in_table)
-            else:
-                print(key)
-        except: 
-            print('except')
-            return None
+        #try:
+        if obj != None:
+            strats_in_table = len(self.init_strat._strategies_in_table)
+            timeframe = self.tf_dropdown.get()
+            symbol = self.target_symbol.get()
+            volume = float(self.volume_entry.get())
+            
+            self.init_strat.add_strat_to_table(obj, timeframe, symbol, volume, key)
+            self.build_strat_row(key, timeframe, symbol, volume, strats_in_table)
+        else:
+            print(key)
+        #except: 
+            #print('except')
+            #return None
     def build_strat_row(self, strat_name, timeframe, symbol, volume, i):
         """UI Method for building a strat row
         """

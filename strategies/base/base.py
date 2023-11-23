@@ -5,6 +5,7 @@ from datetime import timezone as tz
 from datetime import timedelta
 import MetaTrader5 as mt5
 import event
+import pytz
 
 _log = logging.getLogger(__name__)
 
@@ -179,13 +180,26 @@ class Base:
 		next_interval += delta 
 		ts = int(next_interval.timestamp())
 
-
+		
 		#server_delta = self.divisor if now.second == 0 else 0
 		
 		#server_time = utc_now - timedelta(minutes = server_delta)
-		server_time = utc_now + timedelta(hours = 3)
-		server_time = server_time.replace(minute = server_min, second = 0, microsecond = 0)
+		if not self.mt5.is_connected():
+			print('fetching server time from calculation')
+			server_time = utc_now + timedelta(hours = 3)
+			server_time = server_time.replace(minute = min, second = 0, microsecond = 0)
+		else:	
+			print('fetching server time from terminal')
+			last_server_datetime = dt.fromtimestamp(mt5.symbol_info(self.symbol)._asdict()['time'])
+			svr_hours = last_server_datetime.hour - 8
 
+			if svr_hours < 0:
+				svr_hours += 24
+			if min == 0: 
+				svr_hours += 1
+			
+			last_server_time = last_server_datetime.replace(hour = svr_hours, second = 0, microsecond = 0)
+			server_time = last_server_time.replace(minute = min)
 		return next_interval, ts, server_time
 	
 
@@ -201,4 +215,17 @@ class Base:
 		self.running_thread = Thread(target = loop_function, daemon = True)
 		self.running_thread.start()
 		self.threads.append(self.running_thread)
+
+	### ====== PROVISIONAL ====== ### 
+	def get_last_server_timestamp(self):
+		if not self.mt5.is_connected():
+			raise ConnectionError
+		
+		last_timestamp = dt.fromtimestamp(mt5.symbol_info(self.symbol)._asdict()['time'])
+		hours, mins = last_timestamp.hour - 8, last_timestamp.minute 
+
+		if hours < 0:
+			hours += 24
+		last_server_time = last_timestamp.replace(hour = hours, minute = dt.now().minute, second = 0, microsecond = 0)
+		return last_server_time
 		

@@ -216,7 +216,7 @@ class Trade_Handler():
 		return True
 
 
-	def close_pos(self, symbol: str):
+	def close_pos(self, symbol: str, strat_comment: str = ''):
 		"""Closes trades for requested symbol
 
 		Parameters
@@ -238,6 +238,9 @@ class Trade_Handler():
 			elif position.type == mt5.ORDER_TYPE_BUY:
 				order_type = mt5.ORDER_TYPE_SELL 
 				close_price = mt5.symbol_info_tick(symbol).bid
+
+			if position.comment != strat_comment:
+				continue 
 
 			request = {
 				'action' : action,
@@ -316,3 +319,56 @@ class Trade_Handler():
 			
 		# call this when strategy is removed from table
 	
+
+
+	### ======= PROVISIONAL ======= ###
+
+	def close_by_order_package(self, order_package: templates.Trade_Package):
+    		
+		### NOT WORKING !! ###
+		_log.info('%s : Closing Trades', self.__source)
+		action = mt5.TRADE_ACTION_DEAL
+		positions = mt5.positions_get()
+
+		for position in positions:
+			pass
+
+	def close_all_by_magic(self, magic_number: int):
+    	### WORKING ###
+		_log.info('%s : Closing Trades by Magic', self.__source)
+		action = mt5.TRADE_ACTION_DEAL
+		#symbol = symbol
+		positions = mt5.positions_get()
+		deviation = 30
+
+		for position in positions:
+    		
+			if position.magic != magic_number:
+					continue
+
+			if position.type == mt5.ORDER_TYPE_SELL:
+				order_type = mt5.ORDER_TYPE_BUY
+				close_price = mt5.symbol_info_tick(position.symbol).ask  
+
+			elif position.type == mt5.ORDER_TYPE_BUY:
+				order_type = mt5.ORDER_TYPE_SELL 
+				close_price = mt5.symbol_info_tick(position.symbol).bid
+
+
+
+			request = {
+				'action' : action,
+				'symbol' : position.symbol,
+				'volume' : position.volume,
+				'type' : order_type,
+				'position' : position.ticket,
+				'price' : close_price,
+				'deviation' : deviation,
+				'magic' : position.magic,
+				'comment' : 'Close',
+				'type_time' : mt5.ORDER_TIME_GTC,
+				'type_filling' : mt5.ORDER_FILLING_IOC
+			}
+			
+			#if position.type != order_type:
+			close_request = self.mt5_object.send_order(request)

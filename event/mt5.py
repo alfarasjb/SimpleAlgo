@@ -313,9 +313,10 @@ class MT5_Py():
 
 
 		_log.info('%s : Sending Order: %s', self.__source, request_form)
-		if self._algo_trading_enabled == False:
+		#TEMPORARILY DISABLED
+		#if self._algo_trading_enabled == False:
 			# RETURN FAILED TO SEND
-			_log.info('%s : Failed to send order. Algo trading disabled', self.__source)
+			#_log.info('%s : Failed to send order. Algo trading disabled', self.__source)
 			
 		order = mt5.order_send(request_form)
 		if order == None:

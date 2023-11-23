@@ -234,7 +234,8 @@ class App(ctk.CTk):
 			self._symbols_list = self.mt5_py.fetch_symbols()
 
 			self.tab_func() # Updates table elements on MT5 Launch
-			self.signals_handler.update_signals()
+			# TEMPORARILIY DISABLED
+			#self.signals_handler.update_signals()
 			
 
 	def change_account_popup(self):
