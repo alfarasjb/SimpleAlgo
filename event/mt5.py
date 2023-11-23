@@ -6,7 +6,7 @@ import pandas as pd
 # Local Imports
 import templates
 import config
-
+import pytz
 _log = logging.getLogger(__name__)
 
 
@@ -43,6 +43,7 @@ class MT5_Py():
 		self._algo_trading_enabled = False
 		self.connected = self.is_connected()
 
+		self.delta = None 
 		
 
 		
@@ -326,5 +327,3 @@ class MT5_Py():
 
 
 		return order
-
-
