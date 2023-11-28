@@ -33,7 +33,7 @@ class DB_Handler():
 		#self.engine = db.create_engine(f'mysql://root:{password}@localhost:3306/{database}') # if database is sql (settings)
 		#self.connection = self.engine.connect() # if database is sql
 
-	def fetch_sql(self, table: str) -> pd.DataFrame:
+	def fetch_sql(self, table: str):
 		# Fetch is called everytime trade handler wants to store to db (execution or closed)
 		# args: table 
 
@@ -45,7 +45,7 @@ class DB_Handler():
 		
 
 
-	def store_sql(self, type: str, order_form: list) -> bool:
+	def store_sql(self, type: str, order_form: list):
 		# args: order in list form, table name to append
 		# types: execution or closed
 		# items = [date, 123456, 'Buy', 'GBPUSD', price, price, price, 0.01]

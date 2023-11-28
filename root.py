@@ -88,8 +88,8 @@ class App(ctk.CTk):
 		#'Correlation Matrix', 'Signals', 'Manual Trading']
 
 		#tab_names = ['Strategies', 'Manual Trading', 'Open Positions', 'History', 'Signals']
-		tab_names = ['Strategies', 'Manual Trading', 'Signals', 'Equities']
-
+		#tab_names = ['Strategies', 'Manual Trading', 'Signals', 'Equities']
+		tab_names = ['Strategies','Signals']
 		# Builds Main Tabview ; command builds elements per tab
 		self.tabview = ctk.CTkTabview(self, command = self.tab_func)
 		self.tabview.grid(row = 1, column = 1, padx = 20, pady = 10, sticky = 'nsew') # Position in master 

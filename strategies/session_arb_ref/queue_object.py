@@ -133,7 +133,7 @@ class Queue_Handler:
             If the trade is missed, the queue is updated.
         """
         for t in self.trade_queue:
-            if t.trade_time > last_server_time:
+            if t.trade_datetime > last_server_time:
                 break
             self.trade_queue.remove(t)
 
